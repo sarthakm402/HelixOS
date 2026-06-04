@@ -1,6 +1,7 @@
 import json
 from core.chat import ask
 from core.memory import add_message
+print(""" ================================== AI CYBERDECK v0.1 ================================== """)
 while True:
     user_input = input("user> ")
     if user_input == "wq":
