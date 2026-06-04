@@ -1,0 +1,22 @@
+# AI Cyberdeck
+
+AI Cyberdeck is a local-first AI operating environment designed to act as a personal control plane for knowledge, workflows, automation, and system interaction.
+
+The system is built around three layers:
+
+* Frontend: user interfaces and dashboards.
+* Core: orchestration, decision-making, workflows, and agents.
+* Services: integrations with models, memory systems, files, terminals, databases, and operating-system capabilities.
+
+The goal is not to build a chatbot.
+
+The goal is to build a platform capable of:
+
+* running local AI models,
+* managing personal knowledge,
+* executing workflows,
+* coordinating agents,
+* monitoring system resources,
+* and eventually interacting with the local computer through controlled tool execution.
+
+Over time the platform evolves from a simple AI service into a personal AI operating environment where intelligence, automation, and system capabilities are unified behind a single control plane.
