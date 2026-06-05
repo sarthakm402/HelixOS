@@ -5,4 +5,5 @@ def add_message(message: dict):
 def get_all_history():
     return all_in_memory_history
 def clear_all_history():
-    return all_in_memory_history.clear()
+    all_in_memory_history.clear()
+    return True
