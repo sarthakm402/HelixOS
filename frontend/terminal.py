@@ -1,33 +1,13 @@
 import json
-from core.chat import ask
-from core.memory import add_message,clear_all_history,get_all_history
+from core.memory import add_message
+from core.router import route_user_input
 print(""" ================================== AI CYBERDECK v0.1 ================================== """)
 while True:
     user_input = input("user> ")
-    if user_input == "/exit":
+    result=route_user_input(user_input)
+    if result== "exit":
         break
-    if user_input=="/clear":
-        clear_all_history()
-        print("history cleared")
-        continue
-    if user_input=="/history":
-        print(get_all_history())
-        continue
-    if user_input=="/help":
-        print("""
-               MODES:
-               - Chat mode: anything not starting with "/" goes to AI
-
-              COMMANDS:
-              - /help     - show this help menu
-              - /history  - show conversation history
-              - /clear    - clear current session memory
-              - /exit     - close cyberdeck
-              USAGE:
-              - Type normally to talk to AI
-              - Use "/" for system commands
-
-            """)
+    if result=="command executed":
         continue
     add_message({
         "role": "user",
@@ -35,7 +15,7 @@ while True:
     })
     print("Helix> ", end="")
     assistant_response = ""
-    for token in ask(user_input):
+    for token in result:
         print(token, end="", flush=True)
         assistant_response += token
     print()
