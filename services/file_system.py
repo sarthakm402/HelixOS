@@ -18,3 +18,20 @@ def read_file(path):
     with open(path,"r") as f:
         content=f.read()
     return content
+def find_file(name,start_path=".",search_files=True,search_dir=False):
+    matched_files=[]
+    matched_dirs=[]
+    for root,dirs,files in os.walk(start_path):
+        if search_files:
+         if name in files:
+             matched_files.append(os.path.join(root,name))
+        if search_dir:
+            if name in dirs:
+                matched_dirs.append(os.path.join(root,name))
+                
+    return {
+        "matched_files":matched_files,
+        "matched_dirs":matched_dirs
+    }
+
+    

@@ -2,7 +2,7 @@ from core.memory import (
     clear_all_history,
     get_all_history,
 )
-from services.file_system import get_ls,get_pwd,cd,read_file
+from services.file_system import get_ls,get_pwd,cd,read_file,find_file
 def handle_commands(user_input):
     if user_input == "/exit":
         return "exit"
@@ -28,6 +28,7 @@ def handle_commands(user_input):
               -/pwd       -current working directory
               -/ls        -list the things present in directory
               -/read_file -read the content of the files provided
+              -/find      -helps to find file or directory
               USAGE:
               - Type normally to talk to AI
               - Use "/" for system commands
@@ -55,5 +56,15 @@ def handle_commands(user_input):
     if user_input=="/read_file":
         path=input("pass the path:")
         print(read_file(path))
-        return "command executed"   
+        return "command executed"  
+    if user_input=="/find":
+        name=input("enter the name of file or directory:")
+        path=input("pass the path:")
+        if not path or path=="":
+            print("path not provided")
+            path="."
+        print(find_file(name,path))
+        return "command executed"
+    
+ 
         

@@ -19,3 +19,13 @@ def chat_with_llm(query):
          chunk=json.loads(line)
         #  print(chunk)
          yield chunk["response"]
+def give_summary(repo_info:dict):
+   prompt='''YOU are a great summariser adn you are given three things:
+   readme:
+   repo_info
+   '''
+   payload={
+      "model":model_name,
+      "prompt":prompt
+   }
+   
