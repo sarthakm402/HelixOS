@@ -1,5 +1,5 @@
 import os
-
+from services.llm import create_summary
 def list_files(file_names=None, start_path="."):
     matched_files = []
     file_ext = {".py", ".ipynb", ".md", ".txt"}
@@ -16,7 +16,6 @@ def list_files(file_names=None, start_path="."):
                 ext = os.path.splitext(file)[1]
                 if ext in file_ext:
                     matched_files.append(os.path.join(root, file))
-
     return matched_files
 
 
@@ -39,8 +38,14 @@ def create_snapshot(files: list):
             md_snap[filepath] = content
         elif ext in {".py", ".ipynb"}:
             code_snap.append(filepath)  
-    return txt_snap, md_snap, code_snap
-def make_summary(txt_snap=None,md_snap=None,code_snap=None):
-    
+    repo_info={
+        "txt_snapshot":txt_snap,
+        "readme_snapshot":md_snap,
+        "code_files":code_snap
+    }
+    return repo_info
+def summary(repo_info:dict):
+    return create_summary(repo_info)
+
             
 

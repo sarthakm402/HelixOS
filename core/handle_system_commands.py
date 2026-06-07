@@ -3,6 +3,7 @@ from core.memory import (
     get_all_history,
 )
 from services.file_system import get_ls,get_pwd,cd,read_file,find_file
+from core.analyser import list_files,create_snapshot,summary
 def handle_commands(user_input):
     if user_input == "/exit":
         return "exit"
@@ -29,6 +30,7 @@ def handle_commands(user_input):
               -/ls        -list the things present in directory
               -/read_file -read the content of the files provided
               -/find      -helps to find file or directory
+              -/analyse   -helps to give prelim analysis of a repo
               USAGE:
               - Type normally to talk to AI
               - Use "/" for system commands
@@ -65,6 +67,14 @@ def handle_commands(user_input):
             path="."
         print(find_file(name,path))
         return "command executed"
+    if user_input=="/analyse":
+        files_given=input("give names of files to be analysed:")
+        files = list_files(files_given)
+        repo_info = create_snapshot(files)
+        full_summary = summary(repo_info)
+        print(full_summary)
+        return "command executed"
+
     
  
         
