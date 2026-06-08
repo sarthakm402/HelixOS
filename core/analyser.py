@@ -1,5 +1,6 @@
 import os
 from services.llm import create_summary
+from services.ast_helper import parse_python_metadata
 def list_files(file_names=None, start_path="."):
     matched_files = []
     file_ext = {".py", ".ipynb", ".md", ".txt"}
@@ -22,7 +23,7 @@ def list_files(file_names=None, start_path="."):
 def create_snapshot(files: list):
     txt_snap = {}
     md_snap = {}
-    code_snap = []        
+    code_snap = {}      
 
     for filepath in files:
         ext = os.path.splitext(filepath)[1]   
@@ -37,7 +38,7 @@ def create_snapshot(files: list):
         elif ext == ".md":
             md_snap[filepath] = content
         elif ext in {".py", ".ipynb"}:
-            code_snap.append(filepath)  
+            code_snap[filepath]=parse_python_metadata(content)
     repo_info={
         "txt_snapshot":txt_snap,
         "readme_snapshot":md_snap,
