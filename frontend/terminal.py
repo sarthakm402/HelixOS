@@ -17,7 +17,7 @@ while True:
     assistant_response = ""
     for token in result:
         print(token, end="", flush=True)
-        assistant_response += token
+        assistant_response += token 
     print()
     add_message({
         "role": "assistant",

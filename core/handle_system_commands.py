@@ -1,8 +1,10 @@
 from core.memory import (
     clear_all_history,
     get_all_history,
+    remember
 )
 from services.file_system import get_ls,get_pwd,cd,read_file,find_file
+
 from core.analyser import list_files,create_snapshot,summary
 def handle_commands(user_input):
     if user_input == "/exit":
@@ -73,7 +75,21 @@ def handle_commands(user_input):
         repo_info = create_snapshot(files)
         full_summary = summary(repo_info)
         print(full_summary)
-        return "command executed"
+        return "command executed" 
+    if user_input=="/remember":
+        fact = user_input.replace(
+        "/remember",
+        "",
+        1
+    ).strip()
+    remember({
+        "fact": fact
+    })
+
+    return "command executed"
+
+
+
 
     
  
