@@ -20,9 +20,10 @@ def remember(fact):
     with open(NOTES_FILE, "w") as f:
         json.dump(memories, f, indent=2)
 def get_memories():
-
     if not os.path.exists(NOTES_FILE):
         return []
-
-    with open(NOTES_FILE, "r") as f:
-        return json.load(f)
+    try:
+        with open(NOTES_FILE, "r") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return []

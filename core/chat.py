@@ -21,3 +21,8 @@ Current User Message:
 """
     for token in chat_with_llm(prompt):
         yield token
+def complete_ans_of_llm(prompt):
+    output = ""
+    for token in chat_with_llm(prompt):
+        output += token
+    return output
