@@ -76,18 +76,10 @@ def handle_commands(user_input):
         full_summary = summary(repo_info)
         print(full_summary)
         return "command executed" 
-    if user_input=="/remember":
-        fact = user_input.replace(
-        "/remember",
-        "",
-        1
-    ).strip()
-    remember({
-        "fact": fact
-    })
-
-    return "command executed"
-
+    if user_input == "/remember":
+     fact = input("what should I remember?: ")
+     remember({"fact": fact})
+     return "command executed"
 
 
 
