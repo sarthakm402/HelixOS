@@ -11,14 +11,22 @@ def clear_all_history():
     all_in_memory_history.clear()
     return True
 def remember(fact):
-    if os.path.exists(NOTES_FILE):
+    try:
         with open(NOTES_FILE, "r") as f:
             memories = json.load(f)
-    else:
+    except (
+        FileNotFoundError,
+        json.JSONDecodeError
+    ):
         memories = []
     memories.append(fact)
     with open(NOTES_FILE, "w") as f:
-        json.dump(memories, f, indent=2)
+        json.dump(
+            memories,
+            f,
+            indent=2
+        )
+    return "memory stored"
 def get_memories():
     if not os.path.exists(NOTES_FILE):
         return []

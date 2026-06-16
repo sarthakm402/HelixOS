@@ -149,6 +149,8 @@ def execute_plan(plan, user_input):
     return result
 def run_agent(user_input):
     plan = build_planner_prompt(user_input)
+    print("PLAN:")
+    print(plan)
     return execute_plan(
         plan,
         user_input

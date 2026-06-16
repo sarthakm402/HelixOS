@@ -2,7 +2,6 @@ import os
 def get_pwd():
    return os.getcwd()
 def get_ls(path="."):
-    print(os.listdir(path))# this for llm way
     return os.listdir(path)#this for handle commands 
 def cd(path="."):
     if not os.path.exists(path):
@@ -29,10 +28,8 @@ def find_file(name,start_path=".",search_files=True,search_dir=False):
         if search_dir:
             if name in dirs:
                 matched_dirs.append(os.path.join(root,name))
-    print({
+    return {
     "matched_files": matched_files,
     "matched_dirs": matched_dirs
-})
-
-    return "provided the files"
+}
     

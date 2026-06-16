@@ -59,12 +59,6 @@ TOOL_REGISTRY = {
             "fact": args.get("fact")
         })
     },
-
-    ("memory", "history"): {
-        "description": "Show history",
-        "fn": lambda args: get_all_history()
-    },
-
     ("memory", "clear"): {
         "description": "Clear history",
         "fn": lambda args: clear_all_history()

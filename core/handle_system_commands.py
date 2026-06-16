@@ -9,14 +9,6 @@ from core.analyser import list_files,create_snapshot,summary
 def handle_commands(user_input):
     if user_input == "/exit":
         return "exit"
-    if user_input=="/clear":
-        clear_all_history()
-        print("memory wiped")
-        return "command executed"
-        
-    if user_input=="/history":
-        print(get_all_history())
-        return "command executed"
     if user_input=="/help":
         print("""
                MODES:
@@ -39,47 +31,6 @@ def handle_commands(user_input):
 
             """)
         return "command executed"
-    if user_input=="/pwd":
-        
-        print(get_pwd())
-        return "command executed"
-    if user_input=="/cd":
-        path=input("pass the path:")
-        if not path or path=='':
-            print("no path provided")
-            path="."
-        print(cd(path))
-        return "command executed"
-    if user_input=="/ls":  
-        path=input("pass the path:")
-        if not path or path=='':
-            print("no path provided")
-            path="."
-        print(get_ls(path))
-        return "command executed"   
-    if user_input=="/read_file":
-        path=input("pass the path:")
-        print(read_file(path))
-        return "command executed"  
-    if user_input=="/find":
-        name=input("enter the name of file or directory:")
-        path=input("pass the path:")
-        if not path or path=="":
-            print("path not provided")
-            path="."
-        print(find_file(name,path))
-        return "command executed"
-    if user_input=="/analyse":
-        files_given=input("give names of files to be analysed:")
-        files = list_files(files_given)
-        repo_info = create_snapshot(files)
-        full_summary = summary(repo_info)
-        print(full_summary)
-        return "command executed" 
-    if user_input == "/remember":
-     fact = input("what should I remember?: ")
-     remember({"fact": fact})
-     return "command executed"
 
 
 
