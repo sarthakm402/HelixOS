@@ -148,7 +148,7 @@ WRONG:
 [
   {{
     "tool":"filesystem",
-    "action":"find_file",
+    "action":"find_file_or_folder",
     "args": {{
       "name":"name.txt"
     }}
@@ -180,7 +180,28 @@ If you are unsure, use:
 ]
 
 --------------------------------
+For multi chain prompt of user do this and add prec to the args of the next step
+User:
+find chat.py and read it
 
+Output:
+
+[
+  {{
+    "tool":"filesystem",
+    "action":"find_file",
+    "args":{{
+      "name":"chat.py"
+    }}
+  }},
+  {{
+    "tool":"filesystem",
+    "action":"read_file",
+    "args":{{
+      "path":"$prev"
+    }}
+  }}
+]
 USER REQUEST:
 
 {user_input}
@@ -209,6 +230,11 @@ def execute_plan(plan, user_input):
     for step in plan:
         tool = step["tool"]
         action = step["action"]
+        args = step.get("args", {})
+        # replace $prev as this is for chaining
+        for key, value in args.items():
+            if value == "$prev":
+                args[key] = result
         if tool == "chat":
             result = ask(user_input)
             continue
@@ -217,9 +243,7 @@ def execute_plan(plan, user_input):
         fn = TOOL_REGISTRY[
             (tool, action)
         ]["fn"]
-        result = fn(
-            step.get("args", {})
-        )
+        result = fn(args)
     return result
 def run_agent(user_input):
     plan = build_planner_prompt(user_input)
