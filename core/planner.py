@@ -3,8 +3,14 @@ from core.tool_registry import TOOL_REGISTRY
 from core.chat import ask,complete_ans_of_llm
 def get_tool_docs():
     docs = ""
+
     for (tool, action), spec in TOOL_REGISTRY.items():
-        docs += f"{tool}.{action} : {spec['description']}\n"
+        docs += f"""
+Tool: {tool}
+Action: {action}
+Description: {spec['description']}
+
+"""
     return docs
 def build_planner_prompt(user_input):
     prompt = f"""

@@ -3,9 +3,6 @@ from core.memory import (
     get_all_history,
     remember
 )
-from services.file_system import get_ls,get_pwd,cd,read_file,find_file
-
-from core.analyser import list_files,create_snapshot,summary
 def handle_commands(user_input):
     if user_input == "/exit":
         return "exit"
