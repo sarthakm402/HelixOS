@@ -2,6 +2,22 @@ import json
 from types import GeneratorType
 from core.memory import add_message
 from core.router import route_user_input
+import json
+
+def format_result(result):
+    if isinstance(result, str):
+        # strip markdown code fences
+        cleaned = result.replace("```json", "").replace("```", "").strip()
+        # try to parse and pretty print JSON
+        try:
+            parsed = json.loads(cleaned)
+            return json.dumps(parsed, indent=2)
+        except:
+            # not JSON, just unescape the string
+            return cleaned.replace("\\n", "\n").replace("\\t", "\t")
+    if isinstance(result, dict) or isinstance(result, list):
+        return json.dumps(result, indent=2)
+    return str(result)
 print(""" ================================== AI CYBERDECK v0.1 ================================== """)
 while True:
     user_input = input("user> ")
@@ -27,11 +43,7 @@ while True:
         "content": assistant_response
         })
     else:
-        assistant_response = json.dumps(
-            result,
-            indent=2
-        )
-
+        assistant_response = format_result(result)
         print(assistant_response)
 
         add_message({

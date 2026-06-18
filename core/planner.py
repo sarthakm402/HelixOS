@@ -148,7 +148,7 @@ WRONG:
 [
   {{
     "tool":"filesystem",
-    "action":"find_file_or_folder",
+    "action":"find_file",
     "args": {{
       "name":"name.txt"
     }}

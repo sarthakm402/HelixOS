@@ -1,5 +1,6 @@
 from services.file_system import (
-    find_file_or_folder,
+    find_file,
+    find_dir,
     read_file,
     get_ls,
     get_pwd,
@@ -17,18 +18,18 @@ from core.analyser import (
 )
 
 TOOL_REGISTRY = {
-    ("filesystem", "find_file_or_folder"): {
-        "description": """Find a file OR directory by searching the whole project.
-Use when user says: 'find folder X', 'where is X', 'find file X', 'locate X', 'where is X directory'.
-Examples:
-  'find folder services'   -> filesystem.find_file_or_folder args: {"name": "services"}
-  'where is chat.py'       -> filesystem.find_file_or_folder args: {"name": "chat.py"}
-  'locate core directory'  -> filesystem.find_file_or_folder args: {"name": "core"}
+    ("filesystem", "find_file"): {
+    "description": """Find a file by name. Returns its full path.
+Use when: 'find chat.py', 'where is planner.py', 'locate main.py'
 args: {name}""",
-        "fn": lambda args: find_file_or_folder(
-            args.get("name")
-        )
-    },
+    "fn": lambda args: find_file(args.get("name"))
+},
+    ("filesystem", "find_dir"): {
+    "description": """Find a directory by name. Returns its full path.
+Use when: 'find folder services', 'where is core directory', 'locate envs folder'
+args: {name}""",
+    "fn": lambda args: find_dir(args.get("name"))
+},
     ("filesystem", "read_file"): {
         "description": """Read contents of a file at a known path.
 Use when user says: 'read X', 'show contents of X', 'open X', 'what is in X'.
