@@ -1,6 +1,6 @@
 # AI Cyberdeck
 
-AI Cyberdeck is a local-first AI operating environment designed to act as a personal control plane for knowledge, workflows, automation, and system interaction.
+AI Cyberdeck is a local-first AI operating environment designed to act as a personal control plane for knowledge, workflows, automation, and system interaction. 
 
 The system is built around three layers:
 
