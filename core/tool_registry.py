@@ -16,6 +16,7 @@ from core.analyser import (
     create_snapshot,
     summary
 )
+from services.fs_index import refresh_index
 
 TOOL_REGISTRY = {
     ("filesystem", "find_file"): {
@@ -110,6 +111,10 @@ No args.""",
             )
         )
     },
+    ("filesystem", "refresh_index"): {
+    "description": "Rebuild filesystem index (use after file changes)",
+    "fn": lambda args: refresh_index()
+},
     ("chat", "chat"): {
         "description": """Fallback for normal conversation, questions, and anything that does not require a tool.
 Use when user asks questions, greets, or chats.

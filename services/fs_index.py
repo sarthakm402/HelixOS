@@ -14,4 +14,5 @@ def build_index(root=ROOT):
             FILE_INDEX[f.lower()] = os.path.join(r, f)
         for d in dirs:
             DIR_INDEX[d.lower()] = os.path.join(r, d)
-    
+def refresh_index():
+    return build_index(ROOT)
