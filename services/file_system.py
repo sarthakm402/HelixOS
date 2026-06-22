@@ -1,14 +1,15 @@
 import os
-import services.fs_index as fs_index
+from services.fs_index import get_file_index, get_dir_index
 def find_file(name):
     if not name:
         return None
 
     name = name.lower()
-    if name in fs_index.FILE_INDEX:
-        return fs_index.FILE_INDEX[name]
+    FILE_INDEX = get_file_index()
+    if name in FILE_INDEX:
+        return FILE_INDEX[name]
     matches = [
-        v for k, v in fs_index.FILE_INDEX.items()
+        v for k, v in FILE_INDEX.items()
         if name in k
     ]
 
@@ -17,10 +18,11 @@ def find_dir(name):
     if not name:
         return None
     name = name.lower()
-    if name in fs_index.DIR_INDEX:
-        return fs_index.DIR_INDEX[name]
+    DIR_INDEX=get_dir_index()
+    if name in DIR_INDEX:
+        return DIR_INDEX[name]
     matches = [
-        v for k, v in fs_index.DIR_INDEX.items()
+        v for k, v in DIR_INDEX.items()
         if name in k
     ]
     return matches[0] if matches else None

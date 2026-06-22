@@ -185,22 +185,19 @@ User:
 find chat.py and read it
 
 Output:
-
 [
-  {{
-    "tool":"filesystem",
-    "action":"find_file",
-    "args":{{
-      "name":"chat.py"
-    }}
-  }},
-  {{
-    "tool":"filesystem",
-    "action":"read_file",
-    "args":{{
-      "path":"$prev"
-    }}
-  }}
+  {
+    "id": "s1",
+    "tool": "filesystem",
+    "action": "find_file",
+    "args": {"name": "llm.py"}
+  },
+  {
+    "id": "s2",
+    "tool": "filesystem",
+    "action": "read_file",
+    "args": {"path": "$s1"}
+  }
 ]
 USER REQUEST:
 
@@ -226,25 +223,32 @@ USER REQUEST:
             }
         ]
 def execute_plan(plan, user_input):
-    result = None
+    results = {}
     for step in plan:
         tool = step["tool"]
         action = step["action"]
         args = step.get("args", {})
-        # replace $prev as this is for chaining
-        for key, value in args.items():
-            if value == "$prev":
-                args[key] = result
+        step_id = step.get("id")
+        # resolve references like $s1
+        for k, v in args.items():
+            if isinstance(v, str) and v.startswith("$"):
+                ref = v[1:]
+                args[k] = results.get(ref)
+
         if tool == "chat":
-            result = ask(user_input)
+            results[step_id or "chat"] = ask(user_input)
             continue
+
         if (tool, action) not in TOOL_REGISTRY:
             continue
-        fn = TOOL_REGISTRY[
-            (tool, action)
-        ]["fn"]
+
+        fn = TOOL_REGISTRY[(tool, action)]["fn"]
         result = fn(args)
-    return result
+
+        results[step_id or f"{tool}.{action}"] = result
+
+    # return last result
+    return list(results.values())[-1] if results else None
 def run_agent(user_input):
     plan = build_planner_prompt(user_input)
     print("PLAN:")

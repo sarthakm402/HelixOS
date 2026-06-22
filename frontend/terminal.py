@@ -3,7 +3,6 @@ from types import GeneratorType
 from core.memory import add_message
 from core.router import route_user_input
 import json
-
 def format_result(result):
     if isinstance(result, str):
         # strip markdown code fences
