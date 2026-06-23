@@ -185,20 +185,26 @@ User:
 find chat.py and read it
 
 Output:
+
 [
-  {
+  {{
     "id": "s1",
     "tool": "filesystem",
     "action": "find_file",
-    "args": {"name": "llm.py"}
-  },
-  {
+    "args": {{
+      "name": "llm.py"
+    }}
+  }},
+  {{
     "id": "s2",
     "tool": "filesystem",
     "action": "read_file",
-    "args": {"path": "$s1"}
-  }
+    "args": {{
+      "path": "$s1"
+    }}
+  }}
 ]
+
 USER REQUEST:
 
 {user_input}
