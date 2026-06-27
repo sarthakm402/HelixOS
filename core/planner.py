@@ -204,6 +204,19 @@ Output:
     }}
   }}
 ]
+KILL PROCESS RULE
+
+Use os.kill_process when the user wants to STOP or KILL a process.
+
+Examples:
+
+"kill stremio"      -> os.kill_process args: {{"name": "stremio"}}
+"kill chrome"       -> os.kill_process args: {{"name": "chrome"}}
+"terminate firefox" -> os.kill_process args: {{"name": "firefox"}}
+"kill pid 1234"     -> os.kill_process args: {{"pid": "1234"}}
+
+DO NOT use os.list_processes for kill requests.
+os.list_processes is ONLY for when the user wants to SEE processes, not stop them.
 
 USER REQUEST:
 

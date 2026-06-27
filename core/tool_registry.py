@@ -164,5 +164,24 @@ Use when: 'delete folder X', 'remove directory X'.
 args: {name}""",
     "fn": lambda args: delete_dir(args["name"])
 },
+("os", "usage"): {
+    "description": """Get current CPU, RAM and disk usage.
+Use when: 'system usage', 'cpu usage', 'how much ram am i using', 'disk space', 'system stats'.
+No args.""",
+    "fn": lambda args: get_system_usage()
+},
+("os", "list_processes"): {
+    "description": """List running processes sorted by CPU usage.
+Use when: 'list processes', 'what is running', 'show processes', 'ps', 'top processes', 'running apps'.
+args: {filter_name?} optional, filter by process name""",
+    "fn": lambda args: list_processes(args.get("filter_name"))
+},
+("os", "kill_process"): {
+    "description": """Kill a process by name or pid.
+Use when: 'kill X', 'terminate X', 'stop process X', 'kill pid 1234'.
+Prefer name over pid when user gives a name.
+args: {name?, pid?}""",
+    "fn": lambda args: kill_process(args.get("name"), args.get("pid"))
+},
 
 }
