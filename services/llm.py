@@ -1,14 +1,15 @@
 import json 
 import requests
-ollama_url="http://localhost:11434/api/generate"
-model_name="gemma3:4b"
+from core.config import OLLAMA_URL,MODEL_NAME,TEMPERATURE
+ollama_url=OLLAMA_URL
+model_name=MODEL_NAME
 
 def chat_with_llm(query):
     payload={
         "model":model_name,
         "prompt":query,
         "stream":True,
-        "options":{"temperature":0}
+        "options":{"temperature":TEMPERATURE}
     }
 
     response=requests.post(ollama_url,

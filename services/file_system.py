@@ -10,7 +10,7 @@ def find_file(name):
         return FILE_INDEX[name]
     matches = [
         v for k, v in FILE_INDEX.items()
-        if name in k
+        if name == k
     ]
 
     return matches[0] if matches else None
@@ -23,7 +23,7 @@ def find_dir(name):
         return DIR_INDEX[name]
     matches = [
         v for k, v in DIR_INDEX.items()
-        if name in k
+        if name == k
     ]
     return matches[0] if matches else None
 def get_pwd():
@@ -54,10 +54,17 @@ def cd(path="."):
 def _resolve_file(path):
     if os.path.isfile(path):
         return path
-    return find_file(path)
-
+    candidate = find_file(path)
+    if candidate and os.path.isfile(candidate):
+        return candidate
+    return None
 
 def _resolve_dir(path):
     if os.path.isdir(path):
         return path
-    return find_dir(path)
+
+    candidate = find_dir(path)
+    if candidate and os.path.isdir(candidate):
+        return candidate
+
+    return None

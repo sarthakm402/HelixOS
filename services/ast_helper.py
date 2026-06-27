@@ -1,6 +1,9 @@
 import ast
 def parse_python_metadata(content):
-    tree=ast.parse(content)
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return {"classes": [], "functions": [], "imports": [], "error": "syntax error"}
     classes = []
     functions = []
     imports = []

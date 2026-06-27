@@ -17,6 +17,8 @@ from core.analyser import (
     summary
 )
 from services.fs_index import refresh_index
+from services.file_ops import create_file, create_dir, move_file, move_dir,delete_dir,delete_file
+from services.os_ops import get_system_usage, list_processes, kill_process, run_shell
 
 TOOL_REGISTRY = {
     ("filesystem", "find_file"): {
@@ -124,5 +126,43 @@ Examples:
   'what do you remember'   -> chat.chat args: {}
 No args.""",
         "fn": lambda args: None  # handled separately in execute_plan
-    }
+    },
+    
+("filesystem", "create_file"): {
+    "description": """Create an empty file by name, optionally inside a directory.
+Use when: 'create file X', 'make file X in Y', 'new file X in Y'.
+args: {name, dir?}""",
+    "fn": lambda args: create_file(args["name"], args.get("dir"))
+},
+("filesystem", "create_dir"): {
+    "description": """Create a directory by name, optionally inside another directory.
+Use when: 'create folder X', 'make directory X', 'new folder X in Y'.
+args: {name, parent?}""",
+    "fn": lambda args: create_dir(args["name"], args.get("parent"))
+},
+("filesystem", "move_file"): {
+    "description": """Move a file by name into a destination directory.
+Use when: 'move file X to Y', 'put X in Y'.
+args: {name, dst_dir}""",
+    "fn": lambda args: move_file(args["name"], args["dst_dir"])
+},
+("filesystem", "move_dir"): {
+    "description": """Move a directory by name into another directory.
+Use when: 'move folder X to Y', 'move directory X into Y'.
+args: {name, dst_dir}""",
+    "fn": lambda args: move_dir(args["name"], args["dst_dir"])
+},
+ ("filesystem", "delete_file"): {
+    "description": """Delete a file by name.
+Use when: 'delete file X', 'remove file X'.
+args: {name}""",
+    "fn": lambda args: delete_file(args["name"])
+},
+("filesystem", "delete_dir"): {
+    "description": """Delete a directory and everything inside it.
+Use when: 'delete folder X', 'remove directory X'.
+args: {name}""",
+    "fn": lambda args: delete_dir(args["name"])
+},
+
 }

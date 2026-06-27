@@ -1,7 +1,7 @@
 import os
 import threading
-
-ROOT = "/home/sarthak"
+from core.config import ROOT
+ROOT = ROOT
 
 _FILE_INDEX = {}
 _DIR_INDEX = {}

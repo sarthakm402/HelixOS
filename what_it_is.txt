@@ -1,94 +1,52 @@
-# AI Cyberdeck
+# Helix OS
 
-AI Cyberdeck is a local-first AI execution system that functions as a personal control plane for interacting with files, memory, tools, and automated workflows on a local machine.
+Helix OS is a local AI execution system built as a personal control plane
+for a single machine. Natural language input is converted into a structured
+JSON execution plan and run through a set of controlled, deterministic tools.
 
-It is not a chatbot interface.
-
-It is an execution-driven system where natural language is converted into structured plans and safely executed through controlled tools.
-
----
-
-## Core Design
-
-The system is built as a 3-layer execution stack:
-
-### 1. Interface Layer (Frontend)
-- Terminal UI and optional dashboards
-- Accepts natural language commands
-- Streams responses from execution engine
-
-### 2. Control Plane (Core)
-Responsible for decision-making and orchestration:
-
-- Converts user input → structured execution plan
-- Maintains short-term conversational context
-- Manages tool selection and execution flow
-- Handles multi-step workflows
-- Maintains execution state across steps
-
-This layer does NOT perform actions directly.
-
-It only decides WHAT should happen.
+It is not a chatbot. Direct LLM conversation is a fallback, not the default.
 
 ---
 
-### 3. Execution Layer (Services)
+## How it works
 
-A set of deterministic tools that perform system actions:
+Three layers:
 
-- File system operations (search, read, navigate)
-- Memory storage and retrieval
-- Code analysis utilities
-- LLM inference (generation, summarization)
-- System interaction primitives
+1. Interface — terminal input, streamed output, /commands
+2. Control plane (core/) — routes input, builds execution plan, runs steps
+3. Services — deterministic tools that perform the actual work
 
-This layer does NOT decide.
+The planner (Ollama/gemma3:4b) reads user input and outputs a JSON plan:
+  [{"tool": "filesystem", "action": "find_file", "args": {"name": "chat.py"}}]
 
-It only executes.
-
----
-
-## System Philosophy
-
-AI Cyberdeck follows a strict separation of concerns:
-
-- Language models interpret intent
-- The control plane converts intent into structured plans
-- Tools execute plans deterministically
-- State is explicitly tracked across operations
-
-No single component is allowed to act autonomously without structure.
+Steps can reference earlier results via $stepId for multi-step chains.
+Conversation history (last 10 messages) and persisted memories are injected
+into the LLM context on every call.
 
 ---
 
 ## Capabilities
 
-Current capabilities include:
-
-- Natural language command execution
-- File system navigation and search
-- Memory persistence across sessions
-- Repository analysis (AST + summarization)
-- Multi-step tool execution via planning
-- Streaming AI responses
+- File system: find, read, list, navigate, create, write, delete, move
+- OS: CPU/RAM/disk usage, process listing, kill by PID, shell command execution
+- Memory: persist facts to disk across sessions, inject into LLM context
+- Repository analysis: file walk, AST metadata extraction, LLM summarization
+- Multi-step chaining: output of one step feeds into the next
+- Conversation: LLM fallback when no tool fits
 
 ---
 
-## Future Direction
+## Stack
 
-The system is designed to evolve into a local AI operating environment capable of:
-
-- multi-agent workflows
-- background task execution
-- system-level automation
-- structured long-term memory
-- skill-based abstraction layers
-- optional OS integration (controlled and sandboxed)
+- Python 3
+- Ollama (local, gemma3:4b)
+- psutil for OS introspection
+- No external cloud APIs
+- Config centralised in core/config.py
 
 ---
 
-## Key Principle
+## What it is not
 
-AI Cyberdeck is not a conversational agent.
-
-It is a **deterministic execution system controlled by language interfaces**.
+This is a finished v1 CLI tool, not a platform.
+No background tasks, no multi-agent workflows, no GUI, no plugin system.

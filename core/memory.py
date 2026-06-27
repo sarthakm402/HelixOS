@@ -1,8 +1,8 @@
 import json
 import os
-
+from core.config import NOTES_FILE
 all_in_memory_history=[]
-NOTES_FILE = "/home/sarthak/ml_code_new/HelixOS/notes.json"
+NOTES_FILE =NOTES_FILE
 def add_message(message: dict):
     all_in_memory_history.append(message)
 def get_all_history():

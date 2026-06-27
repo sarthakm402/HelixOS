@@ -28,6 +28,7 @@ def handle_commands(user_input):
 
             """)
         return "command executed"
+    return "command executed"
 
 
 

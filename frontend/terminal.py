@@ -3,6 +3,8 @@ from types import GeneratorType
 from core.memory import add_message
 from core.router import route_user_input
 import json
+from services.fs_index import refresh_index
+
 def format_result(result):
     if isinstance(result, str):
         # strip markdown code fences
@@ -19,6 +21,7 @@ def format_result(result):
     return str(result)
 print(""" ================================== AI CYBERDECK v0.1 ================================== """)
 while True:
+    refresh_index()  # build index once at startup
     user_input = input("user> ")
     result=route_user_input(user_input)
     if result== "exit":#from handle commands
