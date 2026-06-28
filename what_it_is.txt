@@ -27,22 +27,31 @@ into the LLM context on every call.
 
 ## Capabilities
 
-- File system: find, read, list, navigate, create, write, delete, move
-- OS: CPU/RAM/disk usage, process listing, kill by PID, shell command execution
-- Memory: persist facts to disk across sessions, inject into LLM context
+- File system: find, read, list, navigate, create, delete, move
+- OS: CPU/RAM/swap/disk usage, process listing, kill by name or PID, shell execution
+- Memory: persist facts to disk across sessions, injected into LLM context on every call
 - Repository analysis: file walk, AST metadata extraction, LLM summarization
-- Multi-step chaining: output of one step feeds into the next
+- Multi-step chaining: output of one step feeds into the next via $stepId
+- Plan validation: every plan checked before execution, invalid plans fall back to chat
+- Cross-platform: runs on Linux, Windows, Mac via platform adapter layer
 - Conversation: LLM fallback when no tool fits
 
 ---
 
 ## Stack
 
-- Python 3
-- Ollama (local, gemma3:4b)
+- Python 3.10+
+- Ollama (local, gemma3:4b) — no cloud APIs
 - psutil for OS introspection
-- No external cloud APIs
+- requests for Ollama HTTP calls
 - Config centralised in core/config.py
+
+## Prerequisites
+
+- ollama installed from ollama.ai
+- model pulled: ollama pull gemma3:4b
+- pip install -e .
+- run: helix
 
 ---
 
