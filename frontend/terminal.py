@@ -6,22 +6,29 @@ import json
 from services.fs_index import refresh_index
 
 def format_result(result):
+    # human readable errors
+    if isinstance(result, dict) and "error" in result:
+        msg = f"[helix error] {result['error']}"
+        if "did_you_mean" in result:
+            msg += f"\ndid you mean: {', '.join(result['did_you_mean'])}"
+        return msg
+
     if isinstance(result, str):
-        # strip markdown code fences
         cleaned = result.replace("```json", "").replace("```", "").strip()
-        # try to parse and pretty print JSON
         try:
             parsed = json.loads(cleaned)
             return json.dumps(parsed, indent=2)
         except:
-            # not JSON, just unescape the string
             return cleaned.replace("\\n", "\n").replace("\\t", "\t")
+
     if isinstance(result, dict) or isinstance(result, list):
         return json.dumps(result, indent=2)
+
     return str(result)
 print(""" ================================== AI CYBERDECK v0.1 ================================== """)
+refresh_index()  # build index once at startup
 while True:
-    refresh_index()  # build index once at startup
+   
     user_input = input("user> ")
     result=route_user_input(user_input)
     if result== "exit":#from handle commands

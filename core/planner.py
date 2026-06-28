@@ -241,6 +241,33 @@ USER REQUEST:
                 "args":{}
             }
         ]
+VALID_TOOLS = set(TOOL_REGISTRY.keys())
+
+def validate_plan(plan):
+    # not a list
+    if not isinstance(plan, list):
+        return False, "plan is not a list"
+    
+    # empty
+    if len(plan) == 0:
+        return False, "plan is empty"
+    
+    for step in plan:
+        # missing keys
+        if "tool" not in step:
+            return False, f"step missing tool: {step}"
+        if "action" not in step:
+            return False, f"step missing action: {step}"
+        
+        # unknown tool
+        if (step["tool"], step["action"]) not in VALID_TOOLS:
+            return False, f"unknown tool: {step['tool']}.{step['action']}"
+        
+        # args must be a dict if present
+        if "args" in step and not isinstance(step["args"], dict):
+            return False, f"args must be a dict in step: {step}"
+    
+    return True, None
 def execute_plan(plan, user_input):
     results = {}
     for step in plan:
@@ -248,7 +275,7 @@ def execute_plan(plan, user_input):
         action = step["action"]
         args = step.get("args", {})
         step_id = step.get("id")
-        # resolve references like $s1
+
         for k, v in args.items():
             if isinstance(v, str) and v.startswith("$"):
                 ref = v[1:]
@@ -259,20 +286,27 @@ def execute_plan(plan, user_input):
             continue
 
         if (tool, action) not in TOOL_REGISTRY:
+            results[step_id or f"{tool}.{action}"] = {
+                "error": f"unknown tool: {tool}.{action}"
+            }
             continue
 
-        fn = TOOL_REGISTRY[(tool, action)]["fn"]
-        result = fn(args)
+        try:
+            fn = TOOL_REGISTRY[(tool, action)]["fn"]
+            result = fn(args)
+        except KeyError as e:
+            result = {"error": f"missing required arg: {str(e)}"}
+        except Exception as e:
+            result = {"error": f"{tool}.{action} failed: {str(e)}"}
 
         results[step_id or f"{tool}.{action}"] = result
 
-    # return last result
     return list(results.values())[-1] if results else None
 def run_agent(user_input):
     plan = build_planner_prompt(user_input)
-    print("PLAN:")
-    print(plan)
-    return execute_plan(
-        plan,
-        user_input
-    )
+    valid, reason = validate_plan(plan)
+    if not valid:
+        print(f"[planner] invalid plan — {reason}, falling back to chat")
+        plan = [{"tool": "chat", "action": "chat", "args": {}}]
+    
+    return execute_plan(plan, user_input)
