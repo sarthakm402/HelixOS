@@ -1,17 +1,10 @@
 import psutil
 import subprocess
 import psutil
+from services.platform import run_shell,get_system_stats
 
 def get_system_usage():
-    return {
-        "cpu_percent": psutil.cpu_percent(interval=0.5),
-        "ram_used_gb": round(psutil.virtual_memory().used / 1e9, 2),
-        "ram_total_gb": round(psutil.virtual_memory().total / 1e9, 2),
-        "ram_percent": psutil.virtual_memory().percent,
-        "disk_used_gb": round(psutil.disk_usage("/").used / 1e9, 2),
-        "disk_total_gb": round(psutil.disk_usage("/").total / 1e9, 2),
-    }
-
+    return get_system_stats
 def list_processes(filter_name=None):
     procs = []
     for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_info"]):
@@ -73,16 +66,4 @@ def kill_process(name=None, pid=None):
     return f"terminated: {', '.join(killed)}"
 
 def run_shell(command, timeout=10):
-    """Run a shell command safely. timeout in seconds."""
-    try:
-        result = subprocess.run(
-            command, shell=True, capture_output=True,
-            text=True, timeout=timeout
-        )
-        return {
-            "stdout": result.stdout.strip(),
-            "stderr": result.stderr.strip(),
-            "returncode": result.returncode,
-        }
-    except subprocess.TimeoutExpired:
-        return {"error": f"timed out after {timeout}s"}
+   return run_shell
