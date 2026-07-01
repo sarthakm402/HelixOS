@@ -153,5 +153,4 @@ Most LLM tool setups let the model decide and execute in one step. Helix separat
 ---
 
 ## What it is not
-
-Finished v1 CLI tool. No background tasks, no multi-agent workflows, no GUI, no plugin system.
+ No background tasks, no multi-agent workflows, no GUI, no plugin system.
