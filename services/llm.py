@@ -5,13 +5,16 @@ ollama_url=OLLAMA_URL
 model_name=MODEL_NAME
 
 def chat_with_llm(query):
-    payload={
-        "model":model_name,
-        "prompt":query,
-        "stream":True,
-        "options":{"temperature":TEMPERATURE}
-    }
-
+    payload = {
+     "model": model_name,
+     "prompt": query,
+     "stream": True,
+     "keep_alive": "30m",
+     "options": {
+        "temperature": TEMPERATURE,
+        "num_ctx": 2048
+     }
+}
     response=requests.post(ollama_url,
     json=payload,stream=True)
     response.raise_for_status()
@@ -132,11 +135,16 @@ confidence:
 notes:
     Additional observations or uncertainties.
 """
-   payload={
-      "model":model_name,
-      "prompt":prompt,
-      "stream":False
-   }
+   payload = {
+    "model": model_name,
+    "prompt": prompt,
+    "stream": False,
+    "keep_alive": "30m",
+    "options": {
+        "temperature": TEMPERATURE,
+        "num_ctx": 2048
+    }
+}
    response=requests.post(ollama_url,
    json=payload)
    response.raise_for_status()
