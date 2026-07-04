@@ -164,7 +164,48 @@ CORRECT:
     "args": {{}}
   }}
 ]
+--------------------------------
 
+NESTED PATH RULE
+
+When the user mentions one or more folders that contain a file or folder,
+extract every folder mentioned, IN ORDER from outermost to innermost, as a
+LIST in "path_hint". Do NOT join them into a single string yourself —
+always output them as separate list items.
+
+This applies no matter how many folders are mentioned: zero, one, two,
+three, or more.
+
+Examples:
+
+"create chunk.json"
+-> path_hint: []
+
+"create notes.txt in logs"
+-> path_hint: ["logs"]
+
+"create chunk.json in core folder of helixos"
+-> path_hint: ["helixos", "core"]
+
+"create config.yaml in settings folder in src folder of backend"
+-> path_hint: ["backend", "src", "settings"]
+
+"put report.pdf inside archive, which is in reports, which is in 2024"
+-> path_hint: ["2024", "reports", "archive"]
+
+"delete notes.txt from logs folder in backend"
+-> filesystem.delete_file args: {{"name": "notes.txt", "path_hint": ["backend", "logs"]}}
+
+"move image.png to assets folder of frontend of website"
+-> filesystem.move_file args: {{"name": "image.png", "path_hint": ["website", "frontend", "assets"]}}
+
+Always list folders in the order a person would walk through them on disk —
+outermost (the top-level folder) first, innermost (the folder that directly
+contains the file) last. Never guess or invent folder names that were not
+mentioned. Never collapse the list into a single joined string like
+"helixos/core" — always a JSON list of separate strings.
+
+--------------------------------
 --------------------------------
 
 FALLBACK RULE
@@ -180,30 +221,7 @@ If you are unsure, use:
 ]
 
 --------------------------------
-For multi chain prompt of user do this and add prec to the args of the next step
-User:
-find chat.py and read it
 
-Output:
-
-[
-  {{
-    "id": "s1",
-    "tool": "filesystem",
-    "action": "find_file",
-    "args": {{
-      "name": "llm.py"
-    }}
-  }},
-  {{
-    "id": "s2",
-    "tool": "filesystem",
-    "action": "read_file",
-    "args": {{
-      "path": "$s1"
-    }}
-  }}
-]
 KILL PROCESS RULE
 
 Use os.kill_process when the user wants to STOP or KILL a process.
