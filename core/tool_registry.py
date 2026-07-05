@@ -4,7 +4,8 @@ from services.file_system import (
     read_file,
     get_ls,
     get_pwd,
-    cd
+    cd,
+    _pick
 )
 from core.memory import (
     remember,
@@ -20,18 +21,23 @@ from services.fs_index import refresh_index
 from services.file_ops import create_file, create_dir, move_file, move_dir, delete_dir, delete_file
 from services.os_ops import get_system_usage, list_processes, kill_process, run_shell
 
+
+def _resolve_maybe_list(result):
+    return _pick(result) if isinstance(result, list) else result
+
+
 TOOL_REGISTRY = {
     ("filesystem", "find_file"): {
         "description": """Find a file by name. Returns its full path.
 Use when: 'find chat.py', 'where is planner.py', 'locate main.py'
 args: {name}""",
-        "fn": lambda args: find_file(args.get("name"))
+        "fn": lambda args: _resolve_maybe_list(find_file(args.get("name")))
     },
     ("filesystem", "find_dir"): {
         "description": """Find a directory by name. Returns its full path.
 Use when: 'find folder services', 'where is core directory', 'locate envs folder'
 args: {name}""",
-        "fn": lambda args: find_dir(args.get("name"))
+        "fn": lambda args: _resolve_maybe_list(find_dir(args.get("name")))
     },
     ("filesystem", "read_file"): {
         "description": """Read contents of a file at a known path.
@@ -40,9 +46,7 @@ Examples:
   'read planner.py'        -> filesystem.read_file args: {"path": "planner.py"}
   'show contents of main'  -> filesystem.read_file args: {"path": "main.py"}
 args: {path}""",
-        "fn": lambda args: read_file(
-            args.get("path")
-        )
+        "fn": lambda args: read_file(args.get("path"))
     },
     ("filesystem", "list_dir"): {
         "description": """List contents INSIDE a known directory.
@@ -53,9 +57,7 @@ Examples:
   'what is inside core'    -> filesystem.list_dir args: {"path": "core"}
 DO NOT use this to find or locate a directory.
 args: {path}""",
-        "fn": lambda args: get_ls(
-            args.get("path", ".")
-        )
+        "fn": lambda args: get_ls(args.get("path", "."))
     },
     ("filesystem", "pwd"): {
         "description": """Show the current working directory.
@@ -75,9 +77,7 @@ Examples:
   'go to services'         -> filesystem.cd args: {"path": "services"}
   'navigate to ..'         -> filesystem.cd args: {"path": ".."}
 args: {path}""",
-        "fn": lambda args: cd(
-            args.get("path")
-        )
+        "fn": lambda args: cd(args.get("path"))
     },
     ("memory", "remember"): {
         "description": """Store a fact in memory.
@@ -87,9 +87,7 @@ Examples:
   'remember I use ollama'        -> memory.remember args: {"fact": "user uses ollama"}
 DO NOT use this to answer questions about memory.
 args: {fact}""",
-        "fn": lambda args: remember({
-            "fact": args.get("fact")
-        })
+        "fn": lambda args: remember({"fact": args.get("fact")})
     },
     ("memory", "clear"): {
         "description": """Clear all stored memory and history.
@@ -107,11 +105,7 @@ Examples:
   'analyse this project'   -> analyser.project_summary args: {}
   'summarize the codebase' -> analyser.project_summary args: {}
 No args.""",
-        "fn": lambda args: summary(
-            create_snapshot(
-                list_files()
-            )
-        )
+        "fn": lambda args: summary(create_snapshot(list_files()))
     },
     ("filesystem", "refresh_index"): {
         "description": "Rebuild filesystem index (use after file changes)",
@@ -129,76 +123,60 @@ No args.""",
     },
 
     ("filesystem", "create_file"): {
-        "description": """Create an empty file by name. If the user mentions any
-folders it should be created inside, extract them as a LIST in path_hint,
-ordered OUTERMOST folder first, INNERMOST folder last. Do NOT join them into
-a single string yourself. If no folder is mentioned, use an empty list.
-Use when: 'create file X', 'make file X in Y', 'new file X in Y folder of Z'.
+        "description": """Create an empty file by name, optionally inside a folder.
+If the user mentions a folder to create it in, extract just that folder NAME as dir
+(a single string, not a list). If no folder is mentioned, omit dir.
+Use when: 'create file X', 'make file X in Y', 'new file X in Y folder'.
 Examples:
-  'create chunk.json'                                  -> {"name": "chunk.json", "path_hint": []}
-  'create notes.txt in logs'                            -> {"name": "notes.txt", "path_hint": ["logs"]}
-  'create chunk.json in core folder of helixos'          -> {"name": "chunk.json", "path_hint": ["helixos", "core"]}
-  'create config.yaml in settings folder in src of backend' -> {"name": "config.yaml", "path_hint": ["backend", "src", "settings"]}
-args: {name, path_hint?}""",
-        "fn": lambda args: create_file(args["name"])
+  'create chunk.json'                       -> {"name": "chunk.json"}
+  'create notes.txt in logs'                -> {"name": "notes.txt", "dir": "logs"}
+  'create chunk.json in core folder'        -> {"name": "chunk.json", "dir": "core"}
+args: {name, dir?}""",
+        "fn": lambda args: create_file(args["name"], args.get("dir"))
     },
     ("filesystem", "create_dir"): {
-        "description": """Create a directory by name. If the user mentions any
-parent folders it should be created inside, extract them as a LIST in
-path_hint, ordered OUTERMOST first, INNERMOST last. Do NOT join them into a
-single string yourself. If no parent is mentioned, use an empty list.
+        "description": """Create a directory by name, optionally inside a parent folder.
+If the user mentions a parent folder, extract just that folder NAME as parent
+(a single string, not a list). If no parent is mentioned, omit parent.
 Use when: 'create folder X', 'make directory X', 'new folder X in Y'.
 Examples:
-  'create folder cache'                          -> {"name": "cache", "path_hint": []}
-  'create folder cache in services'              -> {"name": "cache", "path_hint": ["services"]}
-  'make dir logs inside src of backend'          -> {"name": "logs", "path_hint": ["backend", "src"]}
-args: {name, path_hint?}""",
-        "fn": lambda args: create_dir(args["name"])
+  'create folder cache'               -> {"name": "cache"}
+  'create folder cache in services'   -> {"name": "cache", "parent": "services"}
+args: {name, parent?}""",
+        "fn": lambda args: create_dir(args["name"], args.get("parent"))
     },
     ("filesystem", "move_file"): {
         "description": """Move a file by name into a destination folder.
-Extract every folder mentioned for the DESTINATION as a LIST in path_hint,
-ordered OUTERMOST first, INNERMOST last. Do NOT join them into a string.
+Extract the destination folder NAME as dst_dir (a single string, not a list).
 Use when: 'move file X to Y', 'put X in Y'.
 Examples:
-  'move chunk.json to core'                           -> {"name": "chunk.json", "path_hint": ["core"]}
-  'move chunk.json to core folder of helixos'         -> {"name": "chunk.json", "path_hint": ["helixos", "core"]}
-args: {name, path_hint}""",
-        "fn": lambda args: move_file(args["name"])
+  'move chunk.json to core'   -> {"name": "chunk.json", "dst_dir": "core"}
+args: {name, dst_dir}""",
+        "fn": lambda args: move_file(args["name"], args.get("dst_dir"))
     },
     ("filesystem", "move_dir"): {
         "description": """Move a directory by name into a destination folder.
-Extract every folder mentioned for the DESTINATION as a LIST in path_hint,
-ordered OUTERMOST first, INNERMOST last. Do NOT join them into a string.
+Extract the destination folder NAME as dst_dir (a single string, not a list).
 Use when: 'move folder X to Y', 'move directory X into Y'.
 Examples:
-  'move folder cache to backend'                      -> {"name": "cache", "path_hint": ["backend"]}
-  'move folder cache to src folder of backend'        -> {"name": "cache", "path_hint": ["backend", "src"]}
-args: {name, path_hint}""",
-        "fn": lambda args: move_dir(args["name"])
+  'move folder cache to backend'   -> {"name": "cache", "dst_dir": "backend"}
+args: {name, dst_dir}""",
+        "fn": lambda args: move_dir(args["name"], args.get("dst_dir"))
     },
     ("filesystem", "delete_file"): {
-        "description": """Delete a file by name. If the user mentions any
-folders the file is inside, extract them as a LIST in path_hint, ordered
-OUTERMOST first, INNERMOST last, to disambiguate between files with the
-same name in different folders. If no folder is mentioned, use an empty list.
-Use when: 'delete file X', 'remove file X', 'delete X from Y folder of Z'.
+        "description": """Delete a file by name.
+Use when: 'delete file X', 'remove file X'.
 Examples:
-  'delete notes.txt'                                    -> {"name": "notes.txt", "path_hint": []}
-  'delete notes.txt from logs folder in backend'        -> {"name": "notes.txt", "path_hint": ["backend", "logs"]}
-args: {name, path_hint?}""",
+  'delete notes.txt'   -> {"name": "notes.txt"}
+args: {name}""",
         "fn": lambda args: delete_file(args["name"])
     },
     ("filesystem", "delete_dir"): {
-        "description": """Delete a directory and everything inside it. If the
-user mentions any parent folders, extract them as a LIST in path_hint,
-ordered OUTERMOST first, INNERMOST last, to disambiguate folders with the
-same name in different locations. If no parent is mentioned, use an empty list.
+        "description": """Delete a directory and everything inside it.
 Use when: 'delete folder X', 'remove directory X'.
 Examples:
-  'delete folder cache'                                 -> {"name": "cache", "path_hint": []}
-  'delete folder cache inside backend'                  -> {"name": "cache", "path_hint": ["backend"]}
-args: {name, path_hint?}""",
+  'delete folder cache'   -> {"name": "cache"}
+args: {name}""",
         "fn": lambda args: delete_dir(args["name"])
     },
 

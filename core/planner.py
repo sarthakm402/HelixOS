@@ -52,6 +52,10 @@ VALID OUTPUT FORMAT:
 TOOL USAGE RULES
 
 Use tools ONLY when the user wants to PERFORM an action.
+CRITICAL RULE — NEVER INVENT TOOL OR ACTION NAMES
+You may ONLY use tool/action pairs that appear EXACTLY in AVAILABLE TOOLS above.
+If you are unsure which tool/action to use, use the chat fallback instead of guessing a name.
+Inventing a new tool or action name (e.g. "create_folder", "make_file") is STRICTLY FORBIDDEN.
 
 Examples:
 
@@ -165,47 +169,20 @@ CORRECT:
   }}
 ]
 --------------------------------
+FILE CREATION RULES
 
-NESTED PATH RULE
-
-When the user mentions one or more folders that contain a file or folder,
-extract every folder mentioned, IN ORDER from outermost to innermost, as a
-LIST in "path_hint". Do NOT join them into a single string yourself —
-always output them as separate list items.
-
-This applies no matter how many folders are mentioned: zero, one, two,
-three, or more.
+When the user mentions ANY folder in connection with creating a file,
+you MUST include it as "dir" in args. Do NOT omit it.
 
 Examples:
 
-"create chunk.json"
--> path_hint: []
+"create chunk.json in core folder"       -> {{"tool":"filesystem","action":"create_file","args":{{"name":"chunk.json","dir":"core"}}}}
+"create chunk.json in core folder of helixos" -> {{"tool":"filesystem","action":"create_file","args":{{"name":"chunk.json","dir":"core"}}}}
+"make notes.txt inside logs"             -> {{"tool":"filesystem","action":"create_file","args":{{"name":"notes.txt","dir":"logs"}}}}
+"create chunk.json"                      -> {{"tool":"filesystem","action":"create_file","args":{{"name":"chunk.json"}}}}
 
-"create notes.txt in logs"
--> path_hint: ["logs"]
-
-"create chunk.json in core folder of helixos"
--> path_hint: ["helixos", "core"]
-
-"create config.yaml in settings folder in src folder of backend"
--> path_hint: ["backend", "src", "settings"]
-
-"put report.pdf inside archive, which is in reports, which is in 2024"
--> path_hint: ["2024", "reports", "archive"]
-
-"delete notes.txt from logs folder in backend"
--> filesystem.delete_file args: {{"name": "notes.txt", "path_hint": ["backend", "logs"]}}
-
-"move image.png to assets folder of frontend of website"
--> filesystem.move_file args: {{"name": "image.png", "path_hint": ["website", "frontend", "assets"]}}
-
-Always list folders in the order a person would walk through them on disk —
-outermost (the top-level folder) first, innermost (the folder that directly
-contains the file) last. Never guess or invent folder names that were not
-mentioned. Never collapse the list into a single joined string like
-"helixos/core" — always a JSON list of separate strings.
-
---------------------------------
+If a folder is mentioned anywhere in the sentence, "dir" is REQUIRED in args.
+Omitting "dir" when a folder was mentioned is WRONG.
 --------------------------------
 
 FALLBACK RULE
@@ -294,10 +271,10 @@ def execute_plan(plan, user_input):
         args = step.get("args", {})
         step_id = step.get("id")
 
-        for k, v in args.items():
-            if isinstance(v, str) and v.startswith("$"):
-                ref = v[1:]
-                args[k] = results.get(ref)
+        # for k, v in args.items():
+        #     if isinstance(v, str) and v.startswith("$"):
+        #         ref = v[1:]
+        #         args[k] = results.get(ref)
 
         if tool == "chat":
             results[step_id or "chat"] = ask(user_input)
@@ -322,6 +299,7 @@ def execute_plan(plan, user_input):
     return list(results.values())[-1] if results else None
 def run_agent(user_input):
     plan = build_planner_prompt(user_input)
+    print(plan)
     valid, reason = validate_plan(plan)
     if not valid:
         print(f"[planner] invalid plan — {reason}, falling back to chat")

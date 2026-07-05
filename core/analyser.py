@@ -2,18 +2,11 @@ import os
 from services.llm import create_summary
 from services.ast_helper import parse_python_metadata
 from core.config import SUPPORTED_FILE_EXTENSIONS
-def list_files(file_names=None, start_path="."):
+def list_files(start_path="."):
     matched_files = []
     file_ext =SUPPORTED_FILE_EXTENSIONS
 
     for root, dirs, files in os.walk(start_path):
-        # specific files
-        if file_names:
-            for file in file_names:
-                if file in files:
-                    matched_files.append(os.path.join(root, file))
-        #scan all relevant files
-        else:
             for file in files:
                 ext = os.path.splitext(file)[1]
                 if ext in file_ext:

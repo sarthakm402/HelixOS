@@ -1,70 +1,99 @@
 import os
 from services.fs_index import get_file_index, get_dir_index
+
+
 def find_file(name):
     if not name:
         return None
 
     name = name.lower()
     FILE_INDEX = get_file_index()
-    if name in FILE_INDEX:
-        return FILE_INDEX[name]
-    matches = [
-        v for k, v in FILE_INDEX.items()
-        if name == k
-    ]
 
-    return matches[0] if matches else None
+    matches = FILE_INDEX.get(name, [])
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+    return matches
+
+
 def find_dir(name):
     if not name:
         return None
+
     name = name.lower()
-    DIR_INDEX=get_dir_index()
-    if name in DIR_INDEX:
-        return DIR_INDEX[name]
-    matches = [
-        v for k, v in DIR_INDEX.items()
-        if name == k
-    ]
-    return matches[0] if matches else None
+    DIR_INDEX = get_dir_index()
+
+    matches = DIR_INDEX.get(name, [])
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+    return matches
+
+
 def get_pwd():
     return os.getcwd()
+def _pick(candidates):
+    for i, c in enumerate(candidates, 1):
+        print(f"  {i}. {c}")
+    choice = input("select the path: ")
+    return candidates[int(choice) - 1]
 def read_file(path):
-    path = _resolve_file(path)
-
-    if not path:
+    resolved = _resolve_file(path)
+    
+    if resolved is None:
         return {"error": "File not found"}
-
-    with open(path, "r", encoding="utf-8") as f:
+    if isinstance(resolved, list):
+        resolved=_pick(candidates=resolved)#so if 1 written we go to 0
+    with open(resolved, "r", encoding="utf-8") as f:
         return f.read()
+
+
 def get_ls(path="."):
-    path = _resolve_dir(path)
+    resolved = _resolve_dir(path)
 
-    if not path:
+    if resolved is None:
         return {"error": "Directory not found"}
+    if isinstance(resolved, list):
+        resolved=_pick(resolved)
 
-    return os.listdir(path)
+    return os.listdir(resolved)
+
+
 def cd(path="."):
-    path = _resolve_dir(path)
+    resolved = _resolve_dir(path)
 
-    if not path:
+    if resolved is None:
         return {"error": "Directory not found"}
+    if isinstance(resolved, list):
+        resolved=_pick(resolved)
 
-    os.chdir(path)
+    os.chdir(resolved)
     return os.getcwd()
+
+
 def _resolve_file(path):
-    if os.path.isfile(path):
-        return path
+   
+
     candidate = find_file(path)
+    if isinstance(candidate, list):
+        return candidate
     if candidate and os.path.isfile(candidate):
         return candidate
+    if os.path.isfile(path):
+        return path
     return None
 
+
 def _resolve_dir(path):
-    if os.path.isdir(path):
-        return path
+ 
 
     candidate = find_dir(path)
+    if isinstance(candidate, list):
+        return candidate
     if candidate and os.path.isdir(candidate):
         return candidate
-
+    if os.path.isdir(path):
+        return path
     return None
