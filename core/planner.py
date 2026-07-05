@@ -212,7 +212,30 @@ Examples:
 
 DO NOT use os.list_processes for kill requests.
 os.list_processes is ONLY for when the user wants to SEE processes, not stop them.
+-----------
+MOVE RULES
 
+Use filesystem.move_dir when the user wants to move a FOLDER.
+Use filesystem.move_file when the user wants to move a FILE.
+
+The "name" is what's being moved. The "dst_dir" is the DESTINATION folder only.
+Ignore source-folder mentions like "from X" — do NOT put them in args.
+This is ONE tool call, not two.
+
+Examples:
+
+"move tests folder from helixos to core folder of controlled_lab"
+  -> {{"tool":"filesystem","action":"move_dir","args":{{"name":"tests","dst_dir":"core"}}}}
+
+"move chunk.json from logs to backend"
+  -> {{"tool":"filesystem","action":"move_file","args":{{"name":"chunk.json","dst_dir":"backend"}}}}
+
+"put cache folder in services"
+  -> {{"tool":"filesystem","action":"move_dir","args":{{"name":"cache","dst_dir":"services"}}}}
+-----
+Refresh_index_rule:
+whenever the user says like refresh index,refresh etc.
+->{{"tool":"filesystem","action":"refresh_index","args":{{}}}}
 USER REQUEST:
 
 {user_input}
