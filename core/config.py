@@ -17,8 +17,8 @@ PROMPTS_DIR = PROJECT_ROOT / "prompts"
 # ==========================================
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-
-MODEL_NAME = "gemma3:4b"
+OLLAMA_CHAT_URL = "http://localhost:11434/api/chat"
+MODEL_NAME = "qwen3.5:2b"
 
 TEMPERATURE = 0
 
