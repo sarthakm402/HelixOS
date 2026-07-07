@@ -1,6 +1,6 @@
 import json 
 import requests
-from core.config import OLLAMA_URL,MODEL_NAME,TEMPERATURE
+from core.config import OLLAMA_URL, OLLAMA_CHAT_URL, MODEL_NAME, TEMPERATURE
 ollama_url=OLLAMA_URL
 model_name=MODEL_NAME
 
@@ -10,9 +10,9 @@ def chat_with_llm(query):
      "prompt": query,
      "stream": True,
      "keep_alive": "30m",
+     "think": False,
      "options": {
         "temperature": TEMPERATURE,
-        "num_ctx": 2048
      }
 }
     response=requests.post(ollama_url,
@@ -21,8 +21,27 @@ def chat_with_llm(query):
     for line in response.iter_lines():
         if line:
          chunk=json.loads(line)
-        #  print(chunk)
          yield chunk["response"]
+
+def get_tool_call_plan(user_input, tools_schema):
+    payload = {
+        "model": model_name,
+        "messages": [{"role": "user", "content": user_input}],
+        "stream": False,
+        "keep_alive": "30m",
+        "tools": tools_schema,
+        "think": False,
+        "options": {
+            "temperature": TEMPERATURE,
+
+        }
+    }
+    response = requests.post(OLLAMA_CHAT_URL, json=payload)
+    response.raise_for_status()
+    data = response.json()
+    message = data.get("message", {})
+    return message.get("tool_calls", []) or []
+
 def create_summary(repo_info):
    prompt = f"""
 You are a senior software architect and repository analyst.
@@ -140,9 +159,9 @@ notes:
     "prompt": prompt,
     "stream": False,
     "keep_alive": "30m",
+    "think": False,
     "options": {
         "temperature": TEMPERATURE,
-        "num_ctx": 2048
     }
 }
    response=requests.post(ollama_url,
@@ -150,5 +169,3 @@ notes:
    response.raise_for_status()
    summary=response.json()
    return summary['response']
-
-   
