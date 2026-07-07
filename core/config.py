@@ -6,7 +6,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-ROOT = Path.home()
+ROOT = Path.home().expanduser("/")
 
 NOTES_FILE = PROJECT_ROOT / "notes.json"
 

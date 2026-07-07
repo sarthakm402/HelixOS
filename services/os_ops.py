@@ -4,7 +4,7 @@ import psutil
 from services.platform import run_shell,get_system_stats
 
 def get_system_usage():
-    return get_system_stats
+    return get_system_stats()
 def list_processes(filter_name=None):
     procs = []
     for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_info"]):
@@ -22,22 +22,6 @@ def list_processes(filter_name=None):
             continue
     return sorted(procs, key=lambda x: x["cpu"], reverse=True)[:20]
 
-def list_processes(filter_name=None):
-    procs = []
-    for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_info"]):
-        try:
-            info = p.info
-            if filter_name and filter_name.lower() not in info["name"].lower():
-                continue
-            procs.append({
-                "pid": info["pid"],
-                "name": info["name"],
-                "cpu": info["cpu_percent"],
-                "ram_mb": round(info["memory_info"].rss / 1e6, 1),
-            })
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-    return sorted(procs, key=lambda x: x["cpu"], reverse=True)[:20]
 
 def kill_process(name=None, pid=None):
     if pid:
@@ -66,4 +50,4 @@ def kill_process(name=None, pid=None):
     return f"terminated: {', '.join(killed)}"
 
 def run_shell(command, timeout=10):
-   return run_shell
+   return run_shell()

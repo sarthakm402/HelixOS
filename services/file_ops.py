@@ -1,9 +1,25 @@
+import re
 import os
 import shutil
 from services.file_system import _resolve_file, _resolve_dir, _pick
 from services.fs_index import refresh_index
 
+
+def _clean_name(raw):
+    if not raw:
+        return raw
+    raw = raw.strip().replace("/", " ")
+    # strip trailing " of <anything>" / " inside <anything>" / " in <anything>"
+    raw = re.sub(r"\s+(of|inside|in)\s+.+$", "", raw, flags=re.IGNORECASE)
+    # strip trailing filler words
+    for suffix in (" folder", " directory", " dir", " file"):
+        if raw.lower().endswith(suffix):
+            raw = raw[: -len(suffix)]
+    return raw.strip()
+
+
 def create_file(name, dir=None):
+    dir = _clean_name(dir)
     resolved_dir = _resolve_dir(dir) if dir else os.getcwd()
     if dir and not resolved_dir:
         return {"error": f"directory not found: {dir}"}
@@ -16,6 +32,7 @@ def create_file(name, dir=None):
     return f"created: {final_path}"
 
 def create_dir(name, parent=None):
+    parent = _clean_name(parent)
     resolved_parent = _resolve_dir(parent) if parent else os.getcwd()
     if parent and not resolved_parent:
         return {"error": f"directory not found: {parent}"}
@@ -27,6 +44,8 @@ def create_dir(name, parent=None):
     return f"created: {final_path}"
 
 def move_file(name, dst_dir):
+    name = _clean_name(name)
+    dst_dir = _clean_name(dst_dir)
     resolved_src = _resolve_file(name)
     if not resolved_src:
         return {"error": f"file not found: {name}"}
@@ -44,6 +63,8 @@ def move_file(name, dst_dir):
     return f"moved: {resolved_src} → {final}"
 
 def move_dir(name, dst_dir):
+    name = _clean_name(name)
+    dst_dir = _clean_name(dst_dir)
     resolved_src = _resolve_dir(name)
     if not resolved_src:
         return {"error": f"directory not found: {name}"}
@@ -61,6 +82,7 @@ def move_dir(name, dst_dir):
     return f"moved: {resolved_src} → {final}"
 
 def delete_file(name):
+    name = _clean_name(name)
     resolved = _resolve_file(name)
     if not resolved:
         return {"error": f"file not found: {name}"}
@@ -72,6 +94,7 @@ def delete_file(name):
     return f"deleted: {resolved}"
 
 def delete_dir(name):
+    name = _clean_name(name)
     resolved = _resolve_dir(name)
     if not resolved:
         return {"error": f"directory not found: {name}"}

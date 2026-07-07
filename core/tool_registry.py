@@ -385,7 +385,15 @@ TOOL_REGISTRY = {
             "type": "function",
             "function": {
                 "name": "filesystem_create_file",
-                "description": "Create an empty file, optionally inside a folder.",
+                "description": (
+                "Create an empty file, optionally inside a folder. "
+                "'dir' must be the BARE folder name only — never a phrase. "
+                "Example: 'create chunk.json in core folder of controlled_lab' "
+                "-> name='chunk.json', dir='core' (NOT 'core folder of controlled_lab', "
+                "NOT 'core/folder of controlled_lab'). Ignore project/parent context "
+                "words like 'of controlled_lab' — just take the single folder name "
+                "right after 'in'/'inside'."
+            ),
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -404,7 +412,13 @@ TOOL_REGISTRY = {
             "type": "function",
             "function": {
                 "name": "filesystem_create_dir",
-                "description": "Create a directory, optionally inside a parent folder.",
+                "description": (
+                "Create a directory, optionally inside a parent folder. "
+                "'parent' must be the BARE folder name only — never a phrase. "
+                "Example: 'create test folder in core folder of controlled_lab' "
+                "-> name='test', parent='core' (NOT 'core folder of controlled_lab'). "
+                "Ignore project/parent context words like 'of controlled_lab'."
+            ),
                 "parameters": {
                     "type": "object",
                     "properties": {
