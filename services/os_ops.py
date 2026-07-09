@@ -1,8 +1,10 @@
 import psutil
 import subprocess
 import psutil
-from services.platform import run_shell,get_system_stats
-
+from services.platform import run_shell as _platform_run_shell,get_system_stats,run_python_module as _platform_run_python_module
+import os
+from services.file_system import _pick,_resolve_file
+from core.config import PROJECT_ROOT
 def get_system_usage():
     return get_system_stats()
 def list_processes(filter_name=None):
@@ -50,4 +52,19 @@ def kill_process(name=None, pid=None):
     return f"terminated: {', '.join(killed)}"
 
 def run_shell(command, timeout=10):
-   return run_shell()
+   return _platform_run_shell(command,timeout=timeout)
+def _path_to_module(path):
+    path_lst=_resolve_file(path)
+    path_of_choice=_pick(path_lst)
+    if path_of_choice.endswith(".py"):
+        path_of_choice=path_of_choice[:-3]
+    path_of_choice = os.path.relpath(path_of_choice, PROJECT_ROOT)
+    path_of_choice=path_of_choice.replace(os.sep,".")
+    path_of_choice = path_of_choice.lstrip(".")
+    return path_of_choice
+
+
+def run_python_module(module_path,args=None,cwd=None):
+    if module_path.endswith(".py") or os.sep in module_path or "/" in module_path:
+        module_path = _path_to_module(module_path)
+    return _platform_run_python_module(module_path, args, cwd)

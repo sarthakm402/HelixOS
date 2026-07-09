@@ -1,6 +1,7 @@
 import subprocess
 import psutil
-
+import time
+from services.file_system import cd
 def run_shell(command, timeout=10):
     try:
         result = subprocess.run(
@@ -46,4 +47,22 @@ def get_system_stats():
             "total_gb": round(disk.total / 1e9, 2),
             "percent": disk.percent,
         }
+    }
+import sys
+
+def run_python_module(module_path, args=None, cwd=None):
+    resolved_cwd=cd(cwd)
+    process = subprocess.Popen(
+        [sys.executable, "-m", module_path] + (args or []),
+        cwd=resolved_cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+
+    stdout, _ = process.communicate()
+
+    return {
+        "exit_code": process.returncode,
+        "stdout": stdout,
     }

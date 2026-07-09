@@ -222,7 +222,7 @@ from core.analyser import (
 )
 from services.fs_index import refresh_index
 from services.file_ops import create_file, create_dir, move_file, move_dir, delete_dir, delete_file
-from services.os_ops import get_system_usage, list_processes, kill_process, run_shell
+from services.os_ops import get_system_usage, list_processes, kill_process, run_shell,run_python_module
 
 
 def _resolve_maybe_list(result):
@@ -556,6 +556,57 @@ TOOL_REGISTRY = {
         },
         "fn": lambda args: kill_process(args.get("name"), args.get("pid"))
     },
+    ("os", "run_module"): {
+    "description": "Run a Python module using `python -m`.",
+    "schema": {
+        "type": "function",
+        "function": {
+            "name": "os_run_module",
+            "description": (
+              " Runs `python -m <module_path> [args...]` in a new terminal window. "
+    "module_path can be a dotted path (`frontend.terminal`) OR a bare filename/relative "
+    "path (`test_run.py`, `tests/test_run.py`) — resolution happens automatically inside "
+    "this tool. cwd should be the project root (e.g. the folder named by the user, like "
+    "'helixos' -> its root path) so the file/module is found and resolved correctly. "
+    "ALWAYS call this tool directly for requests like 'run X.py in <project>' or "
+    "'run X.py from <project>' — do NOT call a separate file-search tool first. "
+    "Just pass module_path exactly as the user said (filename or dotted path) and cwd "
+    "as the project root; this tool handles finding and resolving the file internally."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "module_path": {
+                        "type": "string",
+                        "description": (
+                            "Python module in dotted notation, e.g. "
+                            "`frontend.terminal` or `tests.test_run`."
+                        ),
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional command-line arguments.",
+                        "default": [],
+                    },
+                    "cwd": {
+                        "type": "string",
+                        "description": (
+                            "Working directory (typically the project root) from "
+                            "which to execute the module."
+                        ),
+                    },
+                },
+                "required": ["module_path"],
+            },
+        },
+    },
+    "fn": lambda args: run_python_module(
+        module_path=args["module_path"],
+        args=args.get("args", []),
+        cwd=args.get("cwd"),
+    ),
+},
 }
 
 
