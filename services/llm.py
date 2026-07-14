@@ -30,7 +30,7 @@ def get_tool_call_plan(user_input, tools_schema):
         "stream": False,
         "keep_alive": "30m",
         "tools": tools_schema,
-        "think": False,
+        "think": True,
         "options": {
             "temperature": TEMPERATURE,
 

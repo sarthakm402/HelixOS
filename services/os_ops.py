@@ -3,7 +3,8 @@ import subprocess
 import psutil
 from services.platform import run_shell as _platform_run_shell,get_system_stats,run_python_module as _platform_run_python_module
 import os
-from services.file_system import _pick,_resolve_file
+from services.file_system import _pick,_resolve_file,cd
+from services.file_ops import _clean_name
 from core.config import PROJECT_ROOT
 def get_system_usage():
     return get_system_stats()
@@ -65,6 +66,9 @@ def _path_to_module(path):
 
 
 def run_python_module(module_path,args=None,cwd=None):
+    cwd=cd(cwd)
     if module_path.endswith(".py") or os.sep in module_path or "/" in module_path:
+        module_path = _clean_name(module_path)
+        print(module_path)
         module_path = _path_to_module(module_path)
     return _platform_run_python_module(module_path, args, cwd)
