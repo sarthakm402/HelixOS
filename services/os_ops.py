@@ -3,8 +3,7 @@ import subprocess
 import psutil
 from services.platform import run_shell as _platform_run_shell,get_system_stats,run_python_module as _platform_run_python_module
 import os
-from services.file_system import _pick,_resolve_file,cd
-from services.file_ops import _clean_name
+from services.file_system import _pick,_resolve_file,cd,_resolve_dir
 from core.config import PROJECT_ROOT
 def get_system_usage():
     return get_system_stats()
@@ -64,11 +63,26 @@ def _path_to_module(path):
     path_of_choice = path_of_choice.lstrip(".")
     return path_of_choice
 
+def run_python_module(name, dir=None, args=None, cwd=None):
+    resolved_root = None
+    if cwd:
+        resolved_root = _resolve_dir(cwd)
+        if not resolved_root:
+            return {"error": f"could not find project root: {cwd}"}
+        if isinstance(resolved_root, list):
+            resolved_root = _pick(resolved_root)
+    else:
+        resolved_root = os.getcwd()
 
-def run_python_module(module_path,args=None,cwd=None):
-    cwd=cd(cwd)
-    if module_path.endswith(".py") or os.sep in module_path or "/" in module_path:
-        module_path = _clean_name(module_path)
-        print(module_path)
-        module_path = _path_to_module(module_path)
-    return _platform_run_python_module(module_path, args, cwd)
+    # 2. Resolve the target file, scoped by dir hint if given
+    resolved_file = _resolve_file(name, dir_hint=dir)
+    if not resolved_file:
+        return {"error": f"could not find file: {name}"}
+    if isinstance(resolved_file, list):
+        resolved_file = _pick(resolved_file)
+    module_path = os.path.relpath(resolved_file, resolved_root)
+    if module_path.endswith(".py"):
+        module_path = module_path[:-3]
+    module_path = module_path.replace(os.sep, ".").lstrip(".")
+
+    return _platform_run_python_module(module_path, args, resolved_root)
