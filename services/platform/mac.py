@@ -2,6 +2,11 @@ import subprocess
 import psutil
 import time
 from services.file_system import cd
+
+import os
+import sys
+import subprocess
+
 def run_shell(command, timeout=10):
     try:
         result = subprocess.run(
@@ -48,20 +53,24 @@ def get_system_stats():
             "percent": disk.percent,
         }
     }
-import sys
 
-def run_python_module(module_path, args=None, cwd=None):
-    resolved_cwd=cd(cwd)
+def run_python_module(script_path, args=None, cwd=None):
+    env = os.environ.copy()
+    if cwd:
+        # Prepend the project root to PYTHONPATH so the child process can resolve
+# project-local imports (e.g., `core.memory`) regardless of its launch location,
+# while preserving any existing PYTHONPATH entries.
+      env["PYTHONPATH"] = cwd + os.pathsep + env.get("PYTHONPATH", "")
+
     process = subprocess.Popen(
-        [sys.executable, "-m", module_path] + (args or []),
-        cwd=resolved_cwd,
+        [sys.executable, script_path] + (args or []),
+        cwd=cwd,
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
     )
-
     stdout, _ = process.communicate()
-
     return {
         "exit_code": process.returncode,
         "stdout": stdout,

@@ -53,18 +53,15 @@ def kill_process(name=None, pid=None):
 
 def run_shell(command, timeout=10):
    return _platform_run_shell(command,timeout=timeout)
-def _path_to_module(path):
-    path_lst=_resolve_file(path)
-    path_of_choice=_pick(path_lst)
-    if path_of_choice.endswith(".py"):
-        path_of_choice=path_of_choice[:-3]
-    path_of_choice = os.path.relpath(path_of_choice, PROJECT_ROOT)
-    path_of_choice=path_of_choice.replace(os.sep,".")
-    path_of_choice = path_of_choice.lstrip(".")
-    return path_of_choice
 
 def run_python_module(name, dir=None, args=None, cwd=None):
-    resolved_root = None
+    resolved_file = _resolve_file(name, dir_hint=dir)
+    if not resolved_file:
+        return {"error": f"could not find file: {name}"}
+    if isinstance(resolved_file, list):
+        resolved_file = _pick(resolved_file)
+
+    # working directory: explicit cwd hint > the file's own containing directory
     if cwd:
         resolved_root = _resolve_dir(cwd)
         if not resolved_root:
@@ -72,17 +69,6 @@ def run_python_module(name, dir=None, args=None, cwd=None):
         if isinstance(resolved_root, list):
             resolved_root = _pick(resolved_root)
     else:
-        resolved_root = os.getcwd()
+        resolved_root = os.path.dirname(resolved_file)
 
-    # 2. Resolve the target file, scoped by dir hint if given
-    resolved_file = _resolve_file(name, dir_hint=dir)
-    if not resolved_file:
-        return {"error": f"could not find file: {name}"}
-    if isinstance(resolved_file, list):
-        resolved_file = _pick(resolved_file)
-    module_path = os.path.relpath(resolved_file, resolved_root)
-    if module_path.endswith(".py"):
-        module_path = module_path[:-3]
-    module_path = module_path.replace(os.sep, ".").lstrip(".")
-
-    return _platform_run_python_module(module_path, args, resolved_root)
+    return _platform_run_python_module(resolved_file, args, resolved_root)
