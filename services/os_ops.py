@@ -110,7 +110,7 @@ def start_server(name, dir=None, cwd=None, app_name="app", port=8000):
 
     env = os.environ.copy()
     env["PYTHONPATH"] = resolved_root + os.pathsep + env.get("PYTHONPATH", "")
-    cmd = [sys.executable, "-m", "uvicorn", f"{dotted}:{app_name}", "--reload", "--port", str(port)]
+    cmd = [sys.executable, "-m", "uvicorn", f"{dotted}:{app_name}","--port", str(port)]
 
     process = subprocess.Popen(cmd, cwd=resolved_root, env=env)
     info = process_tracker.track(

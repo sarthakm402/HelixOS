@@ -519,8 +519,7 @@ TOOL_REGISTRY = {
         "function": {
             "name": "os_stop_server",
             "description": (
-                "Stop a server previously started with os_start_server, by name or pid. "
-                "Use for 'stop the server', 'kill test_run server', 'shut down uvicorn'."
+               "Use this — NOT os_kill_process — whenever the user says 'stop/kill/shut down the server', even if they name a .py file. os_kill_process is for OS-level processes by their real system name, not Helix-tracked servers."
             ),
             "parameters": {
                 "type": "object",
