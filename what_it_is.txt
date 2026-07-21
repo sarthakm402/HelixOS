@@ -1,61 +1,87 @@
 # Helix OS
-
 Helix OS is a local AI execution system built as a personal control plane
 for a single machine. Natural language input is converted into a structured
 JSON execution plan and run through a set of controlled, deterministic tools.
-
 It is not a chatbot. Direct LLM conversation is a fallback, not the default.
 
 ---
-
 ## How it works
-
 Three layers:
-
 1. Interface — terminal input, streamed output, /commands
 2. Control plane (core/) — routes input, builds execution plan, runs steps
 3. Services — deterministic tools that perform the actual work
 
-The planner (Ollama/gemma3:4b) reads user input and outputs a JSON plan:
+The planner (Ollama, tool-calling enabled) reads user input and outputs a
+structured tool-call plan, e.g.:
   [{"tool": "filesystem", "action": "find_file", "args": {"name": "chat.py"}}]
 
 Steps can reference earlier results via $stepId for multi-step chains.
 Conversation history (last 10 messages) and persisted memories are injected
 into the LLM context on every call.
 
+File and directory targeting across tools follows one consistent contract:
+a bare `name` plus an optional `dir` hint (bare folder name only, never a
+phrase). The hint disambiguates when multiple files/folders share a name;
+all path construction happens deterministically in code, not via freeform
+LLM-generated paths.
+
 ---
-
 ## Capabilities
-
-- File system: find, read, list, navigate, create, delete, move
-- OS: CPU/RAM/swap/disk usage, process listing, kill by name or PID, shell execution
-- Memory: persist facts to disk across sessions, injected into LLM context on every call
-- Repository analysis: file walk, AST metadata extraction, LLM summarization
+- File system: find, read, list, navigate, create, delete, move — all
+  scoped with optional `dir` hints for disambiguation
+- OS: CPU/RAM/swap/disk usage, process listing, kill by name or PID, shell
+  execution
+- Script execution: run a Python file directly (not via `-m`), with the
+  file's project root auto-injected into `PYTHONPATH` so package-relative
+  imports (e.g. `from core.memory import ...`) resolve correctly regardless
+  of where the script physically lives
+- Server management: start a FastAPI/uvicorn server from any file, running
+  detached (own session, logs redirected to `.helix_logs/`) so it survives
+  independently of the Helix terminal and doesn't get killed by Ctrl+C
+- Process tracking: every script run and server started through Helix is
+  recorded (pid, command, cwd, status, start time) in a tracker persisted
+  to disk, so it survives Helix restarts; queryable on demand, filterable
+  by script/server
+- Memory: persist facts to disk across sessions, injected into LLM context
+  on every call
+- Repository analysis: file walk, AST metadata extraction, LLM
+  summarization
 - Multi-step chaining: output of one step feeds into the next via $stepId
-- Plan validation: every plan checked before execution, invalid plans fall back to chat
+- Plan validation: every plan checked before execution, invalid plans fall
+  back to chat
 - Cross-platform: runs on Linux, Windows, Mac via platform adapter layer
 - Conversation: LLM fallback when no tool fits
 
 ---
-
 ## Stack
-
 - Python 3.10+
-- Ollama (local, gemma3:4b) — no cloud APIs
-- psutil for OS introspection
+- Ollama (local) — tool-calling capable model, no cloud APIs
+- psutil for OS introspection and process tracking
 - requests for Ollama HTTP calls
 - Config centralised in core/config.py
 
 ## Prerequisites
-
 - ollama installed from ollama.ai
-- model pulled: ollama pull gemma3:4b
+- a tool-calling capable model pulled (e.g. `ollama pull qwen2.5:7b`)
 - pip install -e .
 - run: helix
 
 ---
-
 ## What it is not
-
 This is a finished v1 CLI tool, not a platform.
-No background tasks, no multi-agent workflows, no GUI, no plugin system.
+No voice input, no GUI, no plugin system, no multi-agent workflows.
+Background/long-running processes are limited to scripts and servers
+launched directly through Helix's own tools — there is no general-purpose
+job scheduler.
+
+---
+## NOTES
+-It cannot kill protected os servcies like those from snapin linux for example.
+## To do next
+
+- Voice input (dictation only, not full voice parsing) — deferred until
+  typing friction is actually felt; OS-level dictation to be tried first
+  before building anything custom.
+- Persist/expand background job tracking beyond scripts/servers (e.g.
+  long-running batch jobs) if a concrete need shows up — not built
+  preemptively.

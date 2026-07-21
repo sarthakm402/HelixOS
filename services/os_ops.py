@@ -5,7 +5,7 @@ import psutil
 from services.file_system import _pick, _resolve_file, _resolve_dir, cd
 from services.platform import run_shell as _platform_run_shell, get_system_stats
 from core import process_tracker
-
+import difflib
 
 def get_system_usage():
     return get_system_stats()
@@ -13,21 +13,43 @@ def get_system_usage():
 
 def list_processes(filter_name=None):
     procs = []
-    for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_info"]):
+    for p in psutil.process_iter(["pid", "name"]):
         try:
             info = p.info
-            if filter_name and filter_name.lower() not in info["name"].lower():
-                continue
+            name = info.get("name") or ""
+            pid = info.get("pid")
+
+            # fetch cpu/memory separately so AccessDenied on these doesn't drop the process
+            try:
+                cpu = p.cpu_percent(interval=None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                cpu = 0.0
+            try:
+                ram_mb = round(p.memory_info().rss / 1e6, 1)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                ram_mb = 0.0
+
             procs.append({
-                "pid": info["pid"],
-                "name": info["name"],
-                "cpu": info["cpu_percent"],
-                "ram_mb": round(info["memory_info"].rss / 1e6, 1),
+                "pid": pid,
+                "name": name,
+                "cpu": cpu,
+                "ram_mb": ram_mb,
             })
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
-    return sorted(procs, key=lambda x: x["cpu"], reverse=True)[:20]
 
+    if not filter_name:
+        return sorted(procs, key=lambda x: x["cpu"], reverse=True)
+
+    filter_lower = filter_name.lower()
+    substring_matches = [p for p in procs if filter_lower in p["name"].lower()]
+    if substring_matches:
+        return sorted(substring_matches, key=lambda x: x["cpu"], reverse=True)
+
+    names = [p["name"] for p in procs]
+    close = difflib.get_close_matches(filter_name, names, n=10, cutoff=0.6)
+    fuzzy_matches = [p for p in procs if p["name"] in close]
+    return sorted(fuzzy_matches, key=lambda x: x["cpu"], reverse=True)
 
 def kill_process(name=None, pid=None):
     if pid:
