@@ -10,7 +10,7 @@ Not a chatbot. The LLM plans — a separate executor acts.
 
 ```
 user input → router → planner (LLM) → validator → executor → tools → result
-```
+``` 
 
 Three layers:
 
