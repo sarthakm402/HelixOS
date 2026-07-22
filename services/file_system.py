@@ -29,7 +29,6 @@ def find_dir(name):
 
 
 def _filter_by_dir_hint(matches, dir_hint):
-    """Given a list of path matches, narrow to ones inside dir_hint, if possible."""
     if not dir_hint:
         return matches
     dir_hint = dir_hint.lower()
@@ -38,10 +37,19 @@ def _filter_by_dir_hint(matches, dir_hint):
 
 
 def _pick(candidates):
+    """Returns a chosen path, or None if selection fails/cancelled."""
     for i, c in enumerate(candidates, 1):
         print(f"  {i}. {c}")
-    choice = input("select the path: ")
-    return candidates[int(choice) - 1]
+    choice = input("select the path (or blank to cancel): ").strip()
+    if not choice:
+        return None
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(candidates):
+            return candidates[idx]
+        return None
+    except ValueError:
+        return None
 
 
 def _resolve_file(path, dir_hint=None):
@@ -82,8 +90,19 @@ def read_file(path, dir=None):
         return {"error": f"file not found: {path}"}
     if isinstance(resolved, list):
         resolved = _pick(resolved)
-    with open(resolved, "r", encoding="utf-8") as f:
-        return f.read()
+        if resolved is None:
+            return {"error": "no file selected"}
+    try:
+        with open(resolved, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:
+        return {"error": f"cannot read '{resolved}' — not a text file"}
+    except IsADirectoryError:
+        return {"error": f"'{resolved}' is a directory, not a file"}
+    except PermissionError:
+        return {"error": f"permission denied reading '{resolved}'"}
+    except OSError as e:
+        return {"error": f"could not read '{resolved}': {e}"}
 
 
 def get_ls(path=".", dir=None):
@@ -92,7 +111,14 @@ def get_ls(path=".", dir=None):
         return {"error": f"directory not found: {path}"}
     if isinstance(resolved, list):
         resolved = _pick(resolved)
-    return os.listdir(resolved)
+        if resolved is None:
+            return {"error": "no directory selected"}
+    try:
+        return os.listdir(resolved)
+    except PermissionError:
+        return {"error": f"permission denied listing '{resolved}'"}
+    except OSError as e:
+        return {"error": f"could not list '{resolved}': {e}"}
 
 
 def cd(path=".", dir=None):
@@ -101,5 +127,10 @@ def cd(path=".", dir=None):
         return {"error": f"directory not found: {path}"}
     if isinstance(resolved, list):
         resolved = _pick(resolved)
-    os.chdir(resolved)
-    return os.getcwd()
+        if resolved is None:
+            return {"error": "no directory selected"}
+    try:
+        os.chdir(resolved)
+        return os.getcwd()
+    except (PermissionError, FileNotFoundError) as e:
+        return {"error": f"could not change directory to '{resolved}': {e}"}
