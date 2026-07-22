@@ -206,4 +206,4 @@ def stop_server(pid=None, name=None):
 
     result = kill_process(pid=str(target_pid))
     process_tracker.mark_finished(target_pid, None)
-    return result
+    return result 
