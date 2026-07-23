@@ -15,6 +15,8 @@ def build_plan(user_input):
         fn_info = call.get("function", {})
         full_name = fn_info.get("name", "")
         args = fn_info.get("arguments", {}) or {}
+        if not isinstance(args, dict):
+            args = {}
         tool, _, action = full_name.partition("_")
         plan.append({"tool": tool, "action": action, "args": args})
 
@@ -23,38 +25,54 @@ def build_plan(user_input):
     return plan
 
 
+def _resolve_step_refs(args, results):
+    """Replace any '$stepId' string values with the actual result from that step."""
+    resolved = {}
+    for k, v in args.items():
+        if isinstance(v, str) and v.startswith("$"):
+            ref_id = v[1:]
+            resolved[k] = results.get(ref_id, v)  # fall back to literal if not found
+        else:
+            resolved[k] = v
+    return resolved
+
+
 def execute_plan(plan, user_input):
     results = {}
-    for step in plan:
-        tool = step["tool"]
-        action = step["action"]
-        args = step.get("args", {})
-        step_id = step.get("id")
+    last_result = None
+
+    for i, step in enumerate(plan):
+        tool = step.get("tool", "")
+        action = step.get("action", "")
+        args = step.get("args", {}) or {}
+        step_id = step.get("id") or f"__step{i}"
 
         if tool == "chat":
             try:
-                results[step_id or "chat"] = ask(user_input)
+                last_result = ask(user_input)
             except Exception as e:
-                results[step_id or "chat"] = {"error": f"chat failed: {e}"}
+                last_result = {"error": f"chat failed: {e}"}
+            results[step_id] = last_result
             continue
 
         if (tool, action) not in TOOL_REGISTRY:
-            results[step_id or f"{tool}.{action}"] = {
-                "error": f"unknown tool: {tool}.{action}"
-            }
+            last_result = {"error": f"unknown tool: {tool}.{action}"}
+            results[step_id] = last_result
             continue
 
         try:
+            resolved_args = _resolve_step_refs(args, results)
             fn = TOOL_REGISTRY[(tool, action)]["fn"]
-            result = fn(args)
+            result = fn(resolved_args)
         except KeyError as e:
             result = {"error": f"missing required arg: {str(e)}"}
         except Exception as e:
             result = {"error": f"{tool}.{action} failed: {str(e)}"}
 
-        results[step_id or f"{tool}.{action}"] = result
+        results[step_id] = result
+        last_result = result
 
-    return list(results.values())[-1] if results else None
+    return last_result
 
 
 def run_agent(user_input):
@@ -62,7 +80,9 @@ def run_agent(user_input):
         plan = build_plan(user_input)
     except Exception as e:
         return {"error": f"failed to build plan: {e}"}
+
     print(plan)
+
     try:
         return execute_plan(plan, user_input)
     except Exception as e:
