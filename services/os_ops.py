@@ -181,7 +181,7 @@ def start_server(name, dir=None, cwd=None, app_name="app", port=8000):
         process.pid, "server", name, " ".join(cmd), resolved_root,
         extra={"port": port, "log_file": log_path}
     )
-    return {"status": "started", **info}
+    return {"launch_status": "started", **info}
 
 
 def list_helix_processes(kind=None):

@@ -1,0 +1,1 @@
+print("HELIX_SMOKE_OK")
