@@ -4,7 +4,7 @@ import subprocess
 import psutil
 import difflib
 from services.file_system import _pick, _resolve_file, _resolve_dir, cd
-from services.platform import run_shell as _platform_run_shell, get_system_stats
+from services.platform import run_shell as _platform_run_shell, get_system_stats,  launch_npm as _platform_launch_npm, run_python_module as _platform_launch_python
 from core import process_tracker
 
 
@@ -126,22 +126,20 @@ def run_python_module(name, dir=None, args=None, cwd=None):
 
     env = os.environ.copy()
     env["PYTHONPATH"] = resolved_root + os.pathsep + env.get("PYTHONPATH", "")
-    cmd = [sys.executable, resolved_file] + (args or [])
+    cmd_args = [resolved_file] + (args or [])
 
     try:
-        process = subprocess.Popen(
-            cmd, cwd=resolved_root, env=env,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-        )
+        process = _platform_launch_python(cmd_args, cwd=resolved_root, env=env)
     except (FileNotFoundError, PermissionError, OSError) as e:
         return {"error": f"could not launch '{resolved_file}': {e}"}
 
-    process_tracker.track(process.pid, "script", name, " ".join(cmd), resolved_root)
+    process_tracker.track(process.pid, "script", name, f"python {resolved_file}", resolved_root)
 
     stdout, _ = process.communicate()
     process_tracker.mark_finished(process.pid, process.returncode)
 
     return {"exit_code": process.returncode, "stdout": stdout, "pid": process.pid}
+
 
 
 def start_server(name, dir=None, cwd=None, app_name="app", port=8000):
@@ -207,3 +205,45 @@ def stop_server(pid=None, name=None):
     result = kill_process(pid=str(target_pid))
     process_tracker.mark_finished(target_pid, None)
     return result 
+def run_npm_script(script, cwd=None):
+    resolved_root = _resolve_dir(cwd) if cwd else os.getcwd()
+    if cwd and not resolved_root:
+        return {"error": f"could not find project root: {cwd}"}
+    if isinstance(resolved_root, list):
+        resolved_root = _pick(resolved_root)
+        if resolved_root is None:
+            return {"error": "no project root selected"}
+
+    try:
+        process = _platform_launch_npm(["run", script], cwd=resolved_root)
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        return {"error": f"could not run npm script: {e}"}
+
+    process_tracker.track(process.pid, "npm-script", script, f"npm run {script}", resolved_root)
+    stdout, _ = process.communicate()
+    process_tracker.mark_finished(process.pid, process.returncode)
+    return {"exit_code": process.returncode, "stdout": stdout, "pid": process.pid}
+
+
+def start_node_server(cwd=None, script="dev", port=None):
+    resolved_root = _resolve_dir(cwd) if cwd else os.getcwd()
+    if cwd and not resolved_root:
+        return {"error": f"could not find project root: {cwd}"}
+    if isinstance(resolved_root, list):
+        resolved_root = _pick(resolved_root)
+        if resolved_root is None:
+            return {"error": "no project root selected"}
+
+    try:
+        process = _platform_launch_npm(
+            ["run", script], cwd=resolved_root,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, detached=True
+        )
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        return {"error": f"could not start node server: {e}"}
+
+    info = process_tracker.track(
+        process.pid, "node-server", script, f"npm run {script}", resolved_root,
+        extra={"port": port}
+    )
+    return {"status": "started", **info}

@@ -22,7 +22,7 @@ from core.analyser import (
 from services.fs_index import refresh_index
 from services.file_ops import create_file, create_dir, move_file, move_dir, delete_dir, delete_file
 from services.os_ops import get_system_usage, list_processes, kill_process, run_shell, run_python_module
-from services.os_ops import get_system_usage, list_processes, kill_process, run_shell, run_python_module, start_server, list_helix_processes,stop_server
+from services.os_ops import get_system_usage, list_processes, kill_process, run_shell, run_python_module, start_server, list_helix_processes,stop_server,run_npm_script, start_node_server
 
 def _resolve_maybe_list(result):
     return _pick(result) if isinstance(result, list) else result
@@ -519,7 +519,7 @@ TOOL_REGISTRY = {
         "function": {
             "name": "os_stop_server",
             "description": (
-               "Use this — NOT os_kill_process — whenever the user says 'stop/kill/shut down the server', even if they name a .py file. os_kill_process is for OS-level processes by their real system name, not Helix-tracked servers."
+               "Use this — NOT os_kill_process — whenever the user says 'stop/kill/shut down the server', even if they name a .py file or a npm servers. os_kill_process is for OS-level processes by their real system name, not Helix-tracked servers."
             ),
             "parameters": {
                 "type": "object",
@@ -533,6 +533,64 @@ TOOL_REGISTRY = {
     },
     "fn": lambda args: stop_server(pid=args.get("pid"), name=args.get("name"))
 },
+("os", "run_npm_script"): {
+        "description": "Run an npm script (e.g. build, test) and wait for it to finish.",
+        "schema": {
+            "type": "function",
+            "function": {
+                "name": "os_run_npm_script",
+                "description": (
+                    "Run an npm script from package.json (e.g. 'npm run build', 'npm test') "
+                    "and wait for it to complete. 'script' is the script name as defined in "
+                    "package.json, e.g. 'build', 'test', 'lint'. 'cwd' is the project folder "
+                    "containing package.json, as a bare folder name, if mentioned — required "
+                    "when there are multiple package.json files (e.g. frontend/backend). "
+                    "Use for one-off/finite npm tasks, NOT for starting a dev server — "
+                    "use os_start_node_server for that instead."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "script": {"type": "string"},
+                        "cwd": {"type": "string"}
+                    },
+                    "required": ["script"]
+                }
+            }
+        },
+        "fn": lambda args: run_npm_script(args["script"], cwd=args.get("cwd"))
+    },
+
+    ("os", "start_node_server"): {
+        "description": "Start a Node/npm dev server (e.g. npm run dev/start).",
+        "schema": {
+            "type": "function",
+            "function": {
+                "name": "os_start_node_server",
+                "description": (
+                    "Start a long-running Node dev server via npm (e.g. 'npm run dev', "
+                    "'npm start'). Use for 'start the frontend', 'run the dev server', "
+                    "'start react app', 'npm run dev'. 'script' is the package.json script "
+                    "name, default 'dev' unless the user says otherwise (e.g. 'start'). "
+                    "'cwd' is the project folder containing package.json, as a bare folder "
+                    "name, if mentioned — required when there are multiple package.json files. "
+                    "'port' is the port to serve on, if mentioned."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "cwd": {"type": "string"},
+                        "script": {"type": "string", "default": "dev"},
+                        "port": {"type": "integer"}
+                    },
+                    "required": []
+                }
+            }
+        },
+        "fn": lambda args: start_node_server(
+            cwd=args.get("cwd"), script=args.get("script", "dev"), port=args.get("port")
+        )
+    },
 
 }
 

@@ -72,3 +72,14 @@ def run_python_module(script_path, args=None, cwd=None):
         "exit_code": process.returncode,
         "stdout": stdout,
     }
+
+def launch_npm(args, cwd, stdout=None, stderr=None, detached=False):
+    cmd = ["npm.cmd"] + args  # Windows needs the .cmd extension explicitly
+    kwargs = {"cwd": cwd, "stdout": stdout, "stderr": stderr}
+    if stdout is None:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.STDOUT
+        kwargs["text"] = True
+    if detached:
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+    return subprocess.Popen(cmd, **kwargs)

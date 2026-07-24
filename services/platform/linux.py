@@ -77,3 +77,14 @@ def run_python_module(script_path, args=None, cwd=None):
         "exit_code": process.returncode,
         "stdout": stdout,
     }
+
+def launch_npm(args, cwd, stdout=None, stderr=None, detached=False):
+    cmd = ["npm"] + args
+    kwargs = {"cwd": cwd, "stdout": stdout, "stderr": stderr}
+    if stdout is None:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.STDOUT
+        kwargs["text"] = True
+    if detached:
+        kwargs["start_new_session"] = True
+    return subprocess.Popen(cmd, **kwargs)
