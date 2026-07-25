@@ -9,7 +9,7 @@ It is not a chatbot. Direct LLM conversation is a fallback, not the default.
 Three layers:
 1. Interface — terminal input, streamed output, /commands
 2. Control plane (core/) — routes input, builds execution plan, runs steps
-3. Services — deterministic tools that perform the actual work
+3. Services — deterministic tools that perform the actual work 
 
 The planner (Ollama, tool-calling enabled) reads user input and outputs a
 structured tool-call plan, e.g.:
