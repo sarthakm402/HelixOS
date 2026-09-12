@@ -3,7 +3,7 @@ from types import GeneratorType
 from core.memory import add_message
 from core.router import route_user_input
 from services.fs_index import refresh_index
-
+from services.voice import listen
 def init():
     print("Helix starting...")
     print("Building index...")
@@ -37,30 +37,98 @@ def format_result(result):
     if isinstance(result, dict) or isinstance(result, list):
         return json.dumps(result, indent=2)
     return str(result)
-
 def main():
     print("================================== AI CYBERDECK v0.1 ==================================")
     init()
+
     while True:
         user_input = input("user> ")
+
+        if user_input == "/voice":
+            while True:
+                user_input = listen()
+
+                if not user_input:
+                    continue
+
+                if user_input.lower().strip(" .!?") == "exit voice":
+                  break
+
+                print(f"user> {user_input}")
+
+                result = route_user_input(user_input)
+
+                if result == "exit":
+                    break
+
+                if result == "command executed":
+                    continue
+
+                add_message({"role": "user", "content": user_input})
+
+                print("Helix> ", end="")
+
+                if isinstance(result, GeneratorType):
+                    assistant_response = ""
+
+                    for token in result:
+                        print(token, end="", flush=True)
+                        assistant_response += token
+
+                    print()
+                    add_message({
+                        "role": "assistant",
+                        "content": assistant_response
+                    })
+
+                else:
+                    assistant_response = format_result(result)
+                    print(assistant_response)
+
+                    add_message({
+                        "role": "assistant",
+                        "content": assistant_response
+                    })
+
+            continue
+
+        if not user_input:
+            continue
+
         result = route_user_input(user_input)
+
         if result == "exit":
             break
+
         if result == "command executed":
             continue
+
         add_message({"role": "user", "content": user_input})
+
         print("Helix> ", end="")
+
         if isinstance(result, GeneratorType):
             assistant_response = ""
+
             for token in result:
                 print(token, end="", flush=True)
                 assistant_response += token
+
             print()
-            add_message({"role": "assistant", "content": assistant_response})
+            add_message({
+                "role": "assistant",
+                "content": assistant_response
+            })
+
         else:
             assistant_response = format_result(result)
             print(assistant_response)
-            add_message({"role": "assistant", "content": assistant_response})
+
+            add_message({
+                "role": "assistant",
+                "content": assistant_response
+            })
+
 
 if __name__ == "__main__":
     main()
