@@ -20,7 +20,7 @@ Three layers:
 
 **Services** (`services/`) — deterministic tools that do the actual work. The LLM never touches this layer directly.
 
-The planner outputs a JSON plan:
+The planner outputs a JSON plan: 
 ```json
 [{"tool": "filesystem", "action": "find_file", "args": {"name": "chat.py"}}]
 ```
