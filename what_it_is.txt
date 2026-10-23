@@ -4,7 +4,7 @@ for a single machine. Natural language input is converted into a structured
 JSON execution plan and run through a set of controlled, deterministic tools.
 It is not a chatbot. Direct LLM conversation is a fallback, not the default.
 
----
+--- 
 ## How it works 
 Three layers: 
 1. Interface — terminal input, streamed output, /commands
